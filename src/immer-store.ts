@@ -45,10 +45,13 @@ class Store<T = any> implements Lens<T> {
 class Select<T = any> implements Lens<T> {
     state?: T
     readonly subscriptions: Handler<T>[] = []
-    hot = false
     parentSubscription?: Disposer
 
     constructor(private base: Lens<any>, private selector: Selector<any, T>) {}
+
+    private get hot() {
+        return !!this.parentSubscription
+    }
 
     get() {
         if (!this.hot) return this.selector(this.base.get())
@@ -71,7 +74,6 @@ class Select<T = any> implements Lens<T> {
     }
 
     private resume() {
-        this.hot = true
         this.parentSubscription = this.base.subscribe(nextBase => {
             const currentState = this.state
             this.state = this.selector(nextBase)
@@ -85,7 +87,6 @@ class Select<T = any> implements Lens<T> {
             this.parentSubscription!()
             this.parentSubscription = undefined
         }
-        this.hot = false
     }
 
     select<X = any>(selector: Selector<T, X>): Select<X> {
@@ -111,28 +112,27 @@ export function createStore<T>(initialValue: T): Lens<T> {
 
 // TODO refSelect
 
-// function autoLens(initial) {
-//     const store = new Store(initial)
-//     return new Proxy(
-//         {
-//             $lens: store
-//         },
-//         traps
-//     )
-// }
+export function autoLens(baseLens: Lens) {
+    return createProxyLens(baseLens, x => x)
+}
 
-// const traps = {
-//     get(target, property) {
-//         const value = target.get()[property]
-//         if (isPrimitive(value)) return value
-//         // todo cache lens in weakmap
-//         return target.$lens.select(b => b[property])
-//     },
-//     set() {
-//         throw new Error("Cannot write property, use 'update' instead")
-//     }
-//     // TODO: get prop descriptors from target.$lens.get..
-// }
+function createProxyLens(baseLens: Lens, selector: Selector) {
+    const lens = baseLens.select(selector)
+    return new Proxy(lens, traps)
+}
+
+const traps = {
+    get(target, property) {
+        if (property in target)
+            return target[property]
+        const value = target.get()[property]
+        // optimize: cache
+        return createProxyLens(target, b => b[property])
+    },
+    set() {
+        throw new Error("Cannot write property, use 'update' instead")
+    }
+}
 
 // function tracker(component) {
 //     return class Tracker extends Component {

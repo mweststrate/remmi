@@ -1,6 +1,6 @@
 "use strict"
 
-import {createStore} from "../src/immer-store"
+import {createStore, autoLens} from "../src/immer-store"
 
 test("read & update through lens", () => {
     const data = {
@@ -68,3 +68,28 @@ test("read & update through subscription", () => {
     expect(lens.get()).toEqual({c: 3})
     expect(values).toEqual([{x: 4, y: 5}, {x: 4, y: 6}, {a: 2}, null, {b: 3}])
 })
+
+test("read & update through proxy", () => {
+    const data = {
+        loc: {
+            x: 3,
+            y: 5
+        }
+    }
+
+    const store = autoLens(createStore(data))
+    expect(store.get()).toBe(data)
+    const lens = store.loc
+
+    expect(lens.x.get()).toBe(3)
+    const base = lens.get()
+    lens.update(l => {
+        l.x += 1
+    })
+
+    expect(lens.get()).not.toBe(base)
+    expect(lens.x.get()).toBe(4)
+
+    expect(store.get()).not.toBe(data)
+})
+
