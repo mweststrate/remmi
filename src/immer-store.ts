@@ -8,7 +8,7 @@ interface Lens<T> {
     // static create
     select<X = any>(selector: (state: T) => X): Lens<X> // TODO: string based selector
     get(): T
-    update(/*next: Partial<T> | */ producer: ((draft: T) => void)): void
+    update(producer: ((draft: T) => void)): void // TODO: partial state
     subscribe(handler: Handler<T>): Disposer
     // selectAll(selector: string | ((state) => any)) // TODO type selector and such
     // merge(...lenses)
@@ -51,7 +51,7 @@ class Select<T = any> implements Lens<T> {
     constructor(private base: Lens<any>, private selector: Selector<any, T>) {}
 
     get() {
-        if (!this.hot) return this.selector(this.base)
+        if (!this.hot) return this.selector(this.base.get())
         return this.state!
     }
 
@@ -105,7 +105,7 @@ function subscribe(subscriptions: Handler[], handler: Handler): Disposer {
     }
 }
 
-export function create<T>(initialValue: T): Lens<T> {
+export function createStore<T>(initialValue: T): Lens<T> {
     return new Store(initialValue)
 }
 
