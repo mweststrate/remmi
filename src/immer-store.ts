@@ -77,8 +77,12 @@ class Select<T = any> implements Lens<T> {
         return this.state!
     }
 
-    update(updater: ((draft: T) => T | void)) {
-        this.base.update(draft => updater(this.selector(draft)))
+    update(updater: ((draft: T) => void)) {
+        this.base.update(draft => {
+            updater(this.selector(draft))
+            // Note: deliberately no return is accepted from the updater,
+            // as that would not be combinable with selector
+        })
     }
 
     subscribe(handler: Handler<T>) {
