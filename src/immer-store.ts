@@ -4,7 +4,7 @@ type Handler<T = any> = (value: T) => void
 type Selector<T = any, X = any> = (base: T) => X
 type Disposer = () => void
 
-interface Lens<T> {
+interface Lens<T = any> {
     // static create
     select<X = any>(selector: (state: T) => X): Lens<X> // TODO: string based selector
     get(): T
@@ -12,11 +12,16 @@ interface Lens<T> {
     subscribe(handler: Handler<T>): Disposer
     // selectAll(selector: string | ((state) => any)) // TODO type selector and such
     // merge(...lenses)
+    // transaction...
+    // generator / iterator api?
 }
+
+
 
 class Store<T = any> implements Lens<T> {
     state: T
     readonly subscriptions: Handler<T>[] = []
+    private currentDraft?: T;
 
     constructor(initialValue: T) {
         this.state = initialValue
@@ -27,10 +32,22 @@ class Store<T = any> implements Lens<T> {
     }
 
     update(updater: ((draft: T) => T | void)) {
+        if (this.currentDraft) {
+            // update call from an update call (for example caused by merge)
+            // just reuse the current draft
+            updater(this.currentDraft)
+            return
+        }
         const currentState = this.state
-        // TODO support partial or new object?
-        this.state = produce(this.state, updater)
-        if (this.state !== currentState) notify(this.subscriptions, this.state)
+        try {
+            this.state = produce(this.state, (draft) => { // optimize
+                this.currentDraft = draft
+                return updater(draft)
+            })
+            if (this.state !== currentState) notify(this.subscriptions, this.state)
+        } finally {
+            this.currentDraft = undefined
+        }
     }
 
     subscribe(handler: Handler<T>) {
@@ -47,7 +64,9 @@ class Select<T = any> implements Lens<T> {
     readonly subscriptions: Handler<T>[] = []
     parentSubscription?: Disposer
 
-    constructor(private base: Lens<any>, private selector: Selector<any, T>) {}
+    constructor(private base: Lens<any>, private selector: Selector<any, T>) {
+        // TODO: check args
+    }
 
     private get hot() {
         return !!this.parentSubscription
@@ -59,9 +78,7 @@ class Select<T = any> implements Lens<T> {
     }
 
     update(updater: ((draft: T) => T | void)) {
-        this.base.update(draft => {
-            updater(this.selector(draft))
-        })
+        this.base.update(draft => updater(this.selector(draft)))
     }
 
     subscribe(handler: Handler<T>) {
@@ -94,6 +111,70 @@ class Select<T = any> implements Lens<T> {
     }
 }
 
+class Merge<T = any> implements Lens<T> {
+    state: any[]
+    readonly subscriptions: Handler<T>[] = []
+    parentSubscriptions: Disposer[] = []
+
+    constructor(private bases: Lens<any>[]) {
+        // TODO: check args
+        this.state = bases.map(b => b.get()) // optimize: extract fn
+    }
+
+    private get hot() {
+        return this.parentSubscriptions.length > 0
+    }
+
+    get() {
+        if (!this.hot) return this.bases.map(b => b.get()) as any // optimize extract fn // TODO: fix type
+        return this.state!
+    }
+
+    update(updater: ((draft: T) => T | void)) { // TODO: fix typings
+        const drafts: any[] = []
+        const grabNextDraft = () => { // probably optimizable
+            this.bases[drafts.length].update(draft => {
+                drafts.push(draft)
+                if (drafts.length < this.bases.length)
+                    grabNextDraft()
+                else
+                    // we are now in the context of all producers of all bases
+                    // let's call the updater function with those drafts!
+                    updater(drafts as any); // TODO: type
+            })
+        }
+        grabNextDraft()
+    }
+
+    subscribe(handler: Handler<T>) {
+        if (!this.hot) this.resume()
+        const disposer = subscribe(this.subscriptions, handler)
+        return () => {
+            disposer()
+            if (this.subscriptions.length === 0) this.suspend()
+        }
+    }
+
+    private resume() {
+        this.parentSubscriptions = this.bases.map((b, idx) => b.subscribe(nextBase => {
+            const currentState = this.state[idx]
+            this.state[idx] = nextBase
+            if (this.state[idx] !== currentState)
+                notify(this.subscriptions, this.state)
+        }))
+    }
+
+    private suspend() {
+        if (this.hot) {
+            this.parentSubscriptions.splice(0).forEach(d => d())
+        }
+    }
+
+    select<X = any>(selector: Selector<T, X>): Select<X> {
+        return new Select<X>(this, selector)
+    }
+}
+
 function notify(subscriptions: Handler[], value: any) {
     subscriptions.forEach(f => f(value)) // optimize
 }
@@ -110,10 +191,13 @@ export function createStore<T>(initialValue: T): Lens<T> {
     return new Store(initialValue)
 }
 
-// TODO refSelect
-
 export function autoLens(baseLens: Lens) {
     return createProxyLens(baseLens, x => x)
+}
+
+// TODO proper typings
+export function merge(...lenses: Lens[]) {
+    return new Merge(lenses)
 }
 
 function createProxyLens(baseLens: Lens, selector: Selector) {
@@ -122,16 +206,19 @@ function createProxyLens(baseLens: Lens, selector: Selector) {
 }
 
 const traps = {
-    get(target, property) {
+    get(target: any, property: PropertyKey): any {
         if (property in target)
             return target[property]
-        const value = target.get()[property]
         // optimize: cache
         return createProxyLens(target, b => b[property])
     },
     set() {
         throw new Error("Cannot write property, use 'update' instead")
     }
+}
+
+export function track(lens: Lens[], onInvalidate: () => void) {
+    // TODO: support single lens
 }
 
 // function tracker(component) {
