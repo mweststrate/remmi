@@ -11,19 +11,19 @@ test("read & update through lens", () => {
     }
 
     const store = createStore(data)
-    expect(store.get()).toBe(data)
+    expect(store.value()).toBe(data)
     const lens = store.select(s => s.loc)
 
-    expect(lens.get().x).toBe(3)
-    const base = lens.get()
+    expect(lens.value().x).toBe(3)
+    const base = lens.value()
     lens.update(l => {
         l.x += 1
     })
 
-    expect(lens.get()).not.toBe(base)
-    expect(lens.get().x).toBe(4)
+    expect(lens.value()).not.toBe(base)
+    expect(lens.value().x).toBe(4)
 
-    expect(store.get()).not.toBe(data)
+    expect(store.value()).not.toBe(data)
 })
 
 test("read & update through subscription", () => {
@@ -44,7 +44,7 @@ test("read & update through subscription", () => {
     lens.update(l => {
         l.x = 4
     })
-    expect(lens.get()).toEqual({x: 4, y: 5})
+    expect(lens.value()).toEqual({x: 4, y: 5})
     store.update(s => {
         s.loc.y = 6
     })
@@ -65,7 +65,7 @@ test("read & update through subscription", () => {
     store.update(s => {
         s.loc = {c: 3}
     })
-    expect(lens.get()).toEqual({c: 3})
+    expect(lens.value()).toEqual({c: 3})
     expect(values).toEqual([{x: 4, y: 5}, {x: 4, y: 6}, {a: 2}, null, {b: 3}])
 })
 
@@ -78,19 +78,19 @@ test("read & update through proxy", () => {
     }
 
     const store = autoLens(createStore(data))
-    expect(store.get()).toBe(data)
+    expect(store.value()).toBe(data)
     const lens = store.loc
 
-    expect(lens.x.get()).toBe(3)
-    const base = lens.get()
+    expect(lens.x.value()).toBe(3)
+    const base = lens.value()
     lens.update(l => {
         l.x += 1
     })
 
-    expect(lens.get()).not.toBe(base)
-    expect(lens.x.get()).toBe(4)
+    expect(lens.value()).not.toBe(base)
+    expect(lens.x.value()).toBe(4)
 
-    expect(store.get()).not.toBe(data)
+    expect(store.value()).not.toBe(data)
 })
 
 test("combine lenses", () => {
@@ -117,7 +117,7 @@ test("combine lenses", () => {
     const friend = merge(store.select(s => s.users), michel.select(m => m.friend)).select(([users, friend]) => users[friend])
     const age = friend.select(f => f.age)
 
-    expect(friend.get().age).toBe(10)
+    expect(friend.value().age).toBe(10)
     age.subscribe(age => ages.push(age))
 
     store.update(s => {
@@ -130,7 +130,7 @@ test("combine lenses", () => {
         m.friend = "piet"
     })
 
-    expect(friend.get()).toBe(store.get().users.piet)
+    expect(friend.value()).toBe(store.value().users.piet)
 
     merger.update(([store, michel]) => {
         store.users.piet.age = 42
@@ -142,7 +142,7 @@ test("combine lenses", () => {
 
     expect(ages).toEqual([12, 13, 20, 42, 43])
 
-    expect(store.get()).toEqual({
+    expect(store.value()).toEqual({
         users: {
             michel: {
                 name: "michel",
@@ -178,5 +178,5 @@ test("future ref", () => {
     })
 
     expect(values).toEqual(["michel"])
-    expect(s.get()).toEqual({ users: { michel: "michel" }})
+    expect(s.value()).toEqual({ users: { michel: "michel" }})
 })

@@ -7,7 +7,7 @@ type Disposer = () => void
 interface Lens<T = any> {
     // static create
     select<X = any>(selector: (state: T) => X): Lens<X> // TODO: string based selector
-    get(): T
+    value(): T
     update(producer: ((draft: T) => void)): void // TODO: partial state
     subscribe(handler: Handler<T>): Disposer
     // selectAll(selector: string | ((state) => any)) // TODO type selector and such
@@ -27,7 +27,7 @@ class Store<T = any> implements Lens<T> {
         this.state = initialValue
     }
 
-    get() {
+    value() {
         return this.state
     }
 
@@ -72,8 +72,8 @@ class Select<T = any> implements Lens<T> {
         return !!this.parentSubscription
     }
 
-    get() {
-        if (!this.hot) return this.selector(this.base.get())
+    value() {
+        if (!this.hot) return this.selector(this.base.value())
         return this.state!
     }
 
@@ -107,6 +107,7 @@ class Select<T = any> implements Lens<T> {
         if (this.hot) {
             this.parentSubscription!()
             this.parentSubscription = undefined
+            this.state = undefined
         }
     }
 
@@ -116,21 +117,20 @@ class Select<T = any> implements Lens<T> {
 }
 
 class Merge<T = any> implements Lens<T> {
-    state: any[]
+    state?: any[]
     readonly subscriptions: Handler<T>[] = []
     parentSubscriptions: Disposer[] = []
 
     constructor(private bases: Lens<any>[]) {
         // TODO: check args
-        this.state = bases.map(b => b.get()) // optimize: extract fn
     }
 
     private get hot() {
         return this.parentSubscriptions.length > 0
     }
 
-    get() {
-        if (!this.hot) return this.bases.map(b => b.get()) as any // optimize extract fn // TODO: fix type
+    value() {
+        if (!this.hot) return this.bases.map(b => b.value()) as any // optimize extract fn // TODO: fix type
         return this.state!
     }
 
@@ -160,18 +160,18 @@ class Merge<T = any> implements Lens<T> {
     }
 
     private resume() {
+        this.state = this.bases.map(b => b.value()) // optimize: extract fn
         this.parentSubscriptions = this.bases.map((b, idx) => b.subscribe(nextBase => {
-            const currentState = this.state[idx]
-            this.state[idx] = nextBase
-            if (this.state[idx] !== currentState)
+            const currentState = this.state![idx]
+            this.state![idx] = nextBase
+            if (this.state![idx] !== currentState)
                 notify(this.subscriptions, this.state)
         }))
     }
 
     private suspend() {
-        if (this.hot) {
-            this.parentSubscriptions.splice(0).forEach(d => d())
-        }
+        this.parentSubscriptions.splice(0).forEach(d => d())
+        this.state = undefined
     }
 
     select<X = any>(selector: Selector<T, X>): Select<X> {
