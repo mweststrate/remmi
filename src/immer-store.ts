@@ -211,8 +211,12 @@ function createProxyLens(baseLens: Lens, selector: Selector) {
 
 const traps = {
     get(target: any, property: PropertyKey): any {
-        if (property in target)
-            return target[property]
+        if (property in target) {
+            const value = target[property]
+            if (typeof value === "function") // TODO: blegh
+                return value.bind(target) // avoid being called with 'this' as proxy
+            return value
+        }
         // optimize: cache
         return createProxyLens(target, b => b[property])
     },
