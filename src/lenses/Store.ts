@@ -20,7 +20,6 @@ export class Store<T = any> extends BaseLens<T> {
             return
         }
         this.propagateChanged()
-        const currentState = this.state
         try {
             this.state = produce(this.state, draft => {
                 // optimize

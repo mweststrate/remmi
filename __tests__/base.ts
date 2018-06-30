@@ -256,3 +256,48 @@ test("no glitches", () => {
     })
     expect(values).toEqual([8, 12])
 })
+
+test("cleanup", () => {
+    const events: string[] = []
+    const x = createStore({ a: { b: { c : 3 }}, x: 1})
+    const inc = () => x.update(x => {
+        x.a.b.c += 1
+    })
+
+    const a = x.select(x => {
+        events.push("select a")
+        return x.a
+    })
+    const b = a.select(x => {
+        events.push("select b")
+        return x.b
+    })
+    const c = b.select(x => {
+        events.push("select c")
+        return x.c
+    })
+
+    inc()
+
+    expect(events.splice(0)).toEqual([])
+    const d1 = c.subscribe(v => {
+        events.push("sub c: " + v)
+    })
+
+    inc()
+    expect(events.splice(0)).toEqual(["select a", "select b", "select c", "sub c: 5"])
+
+    const d2 = b.subscribe(v => {
+        events.push("sub b: " + JSON.stringify(v))
+    })
+    inc()
+    expect(events.splice(0)).toEqual(["select a", "select b", "sub b: {\"c\":6}", "select c", "sub c: 6"])
+
+    d1()
+    inc()
+    expect(events.splice(0)).toEqual(["select a", "select b", "sub b: {\"c\":7}"])
+
+    d2()
+    inc()
+    expect(events.splice(0)).toEqual([])
+})
