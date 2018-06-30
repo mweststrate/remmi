@@ -293,6 +293,9 @@ test("cleanup", () => {
     inc()
     expect(events.splice(0)).toEqual(["select a", "select b", "sub b: {\"c\":6}", "select c", "sub c: 6"])
 
+    x.update(x => { x.y = 4 })
+    expect(events.splice(0)).toEqual(["select a"])
+
     d1()
     inc()
     expect(events.splice(0)).toEqual(["select a", "select b", "sub b: {\"c\":7}"])

@@ -1,4 +1,5 @@
 import { BaseLens } from "./BaseLens";
+import { fail, shallowEqual } from "../utils"
 
 export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T> {
     constructor(private bases: BaseLens[]) {
@@ -7,6 +8,8 @@ export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T
     }
 
     recompute() {
+        // note, one of the deps has changed, so the output of the merge
+        // is guaranteed to be different as well
         return this.bases.map(b => b.value()) as any // optimize extract fn // TODO: fix type
     }
 

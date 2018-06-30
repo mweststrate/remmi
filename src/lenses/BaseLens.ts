@@ -9,6 +9,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     readonly parents: BaseLens[] = []
 
     dirty = 0
+    changedParents = 0
     state: T
 
     propagateChanged() {
@@ -16,13 +17,20 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             this.derivations.forEach(d => d.propagateChanged())
     }
 
-    propagateReady() {
+    propagateReady(changed: boolean) {
+        if (changed) this.changedParents++
         if (--this.dirty === 0) {
-            const old = this.state
-            this.state = this.recompute()
-            if (this.state !== old)
-                notify(this.subscriptions, this.state)
-            this.derivations.forEach(d => d.propagateReady())
+            if (this.changedParents) {
+                this.changedParents = 0
+                const old = this.state
+                this.state = this.recompute()
+                if (this.state !== old) {
+                    notify(this.subscriptions, this.state)
+                    this.derivations.forEach(d => d.propagateReady(true))
+                    return
+                }
+            }
+            this.derivations.forEach(d => d.propagateReady(false))
         }
     }
 

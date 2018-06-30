@@ -19,16 +19,20 @@ export class Store<T = any> extends BaseLens<T> {
             updater(this.currentDraft)
             return
         }
-        this.propagateChanged()
         try {
+            const baseState = this.state
             this.state = produce(this.state, draft => {
                 // optimize
                 this.currentDraft = draft
                 return updater(draft)
             })
+            if (this.state !== baseState) {
+                // skip default implementation
+                this.derivations.forEach(d => d.propagateChanged())
+                this.derivations.forEach(d => d.propagateReady(true))
+            }
         } finally {
             this.currentDraft = undefined
-            this.propagateReady()
         }
     }
 

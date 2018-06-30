@@ -20,7 +20,7 @@ ___
 
 Counter part of immer
 
-Everything is a lens
+Everything is a lens; materialized view on state
 
 Store as truth
 

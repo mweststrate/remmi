@@ -185,11 +185,3 @@ export function project(...args: any[]) {
 export function mapProject(lens: Lens, callback: (value: any, idx: string | number, lens: Lens) => React.ReactNode) {
     return <MapProjector lens={lens}>{callback}</MapProjector>
 }
-
-function shallowEqual(ar1: any[], ar2: any[]) {
-    if (ar1 === ar2) return true
-    if (!ar1 || !ar2) return false
-    if (ar1.length !== ar2.length) return false
-    for (let i = 0; i < ar1.length; i++) if (ar1[i] !== ar2[i]) return false
-    return true
-}
