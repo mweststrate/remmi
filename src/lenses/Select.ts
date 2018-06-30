@@ -19,12 +19,4 @@ export class Select<B, R> extends Pipe implements Lens<R> {
             // as that would not be combinable with selector
         })
     }
-
-    resume() {
-        this.base.registerDerivation(this)
-    }
-
-    suspend() {
-        this.base.removeDerivation(this)
-    }
 }

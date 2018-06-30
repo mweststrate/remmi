@@ -8,7 +8,9 @@ export interface Lens<T = any> {
     subscribe(handler: Handler<T>): Disposer
     update(producer: ((draft: T) => void)): void // TODO: partial state
 
-    select<X = any>(selector: (state: T) => X): Lens<X> // TODO: string based selector
+    // TODO: how to type number?
+    select<K extends keyof T>(selector: K): Lens<T[K]>
+    select<X = any>(selector: ((state: T) => X)): Lens<X>
     // merge(...lenses)
     // fork
     // log

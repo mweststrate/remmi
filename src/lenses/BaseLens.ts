@@ -2,6 +2,8 @@ import { fail } from "../utils"
 import { Lens, Handler, Disposer, Selector } from "./Lens";
 
 export abstract class BaseLens<T = any> implements Lens<T> {
+    readonly selectorCache = new Map<string, BaseLens>() // TODO: this creates a memory leak, how to fix?
+
     // optimization: initialize fields as empty
     // optimization: no forEach
     readonly subscriptions: Handler<T>[] = []
@@ -78,11 +80,20 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     abstract update(producer: ((draft: T) => void)): void
 
-    select<B = any, R = any>(selector: Selector<B, R>): Select<B, R> {
-        return new Select<B, R>(this, selector)
+    select<R = any>(selector: Selector<T, R>|string|number): Lens<R> {
+        if (typeof selector === "number")
+            selector = ""  +selector // normalize to string
+        if (typeof selector === "string") {
+            const existing = this.selectorCache.get(selector)
+            // if we created a lens for the very same selector before, find it!
+            if (existing) return existing as any
+            const s = new SelectField(this, selector)
+            this.selectorCache.set(selector, s)
+            return s
+        }
+        return new Select<T, R>(this, selector)
     }
 }
-
 
 function notify(subscriptions: Handler[], value: any) {
     subscriptions.forEach(f => f(value)) // optimize
@@ -96,4 +107,6 @@ function subscribe(subscriptions: Handler[], handler: Handler): Disposer {
     }
 }
 
-import { Select } from "./Select";
+import { Select } from "./Select"
+import { SelectField } from "./SelectField"
+

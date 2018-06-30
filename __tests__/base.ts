@@ -156,7 +156,70 @@ test("combine lenses", () => {
             }
         }
     })
+})
 
+test("combine lenses - fields", () => {
+    const data = {
+        users: {
+            michel: {
+                name: "michel",
+                friend: "jan"
+            },
+            jan: {
+                age: 10
+            },
+            piet: {
+                age: 20
+            }
+        }
+    }
+
+    const ages = []
+    const store = createStore(data)
+    const michel = store.select("users").select("michel") // strongly typed!
+    const merger = merge(store, michel)
+    const friend = merge(store.select("users"), michel.select("friend")).select(([users, friend]) => users[friend])
+    const age = friend.select("age")
+
+    expect(friend.value().age).toBe(10)
+    age.subscribe(age => ages.push(age))
+
+    store.update(s => {
+        s.users.jan.age = 12
+    })
+    store.update(s => {
+        s.users.jan.age = 13
+    })
+    michel.update(m => {
+        m.friend = "piet"
+    })
+
+    expect(friend.value()).toBe(store.value().users.piet)
+
+    merger.update(([store, michel]) => {
+        store.users.piet.age = 42
+    })
+
+    friend.update(f => {
+        f.age = 43
+    })
+
+    expect(ages).toEqual([12, 13, 20, 42, 43])
+
+    expect(store.value()).toEqual({
+        users: {
+            michel: {
+                name: "michel",
+                friend: "piet"
+            },
+            jan: {
+                age: 13
+            },
+            piet: {
+                age: 43
+            }
+        }
+    })
 })
 
 test("combine lenses - proxy", () => {

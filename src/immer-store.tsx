@@ -19,8 +19,8 @@ export function merge(...lenses: Lens[]) {
     return new Merge(lenses)
 }
 
-function createProxyLens(baseLens: Lens, selector: Selector) {
-    const lens = baseLens.select(selector) // TODO: create delegator around lens to minimize api surface?
+function createProxyLens(baseLens: Lens, property: string | number) {
+    const lens = baseLens.select(property) // TODO: create delegator around lens to minimize api surface?
     return new Proxy(lens, traps)
 }
 
@@ -34,7 +34,7 @@ const traps = {
             return value
         }
         // optimize: cache
-        return createProxyLens(target, b => b[property])
+        return createProxyLens(target, property)
     },
     set() {
         throw new Error("Cannot write property, use 'update' instead")
@@ -128,8 +128,8 @@ class MapProjector extends React.Component<
                 <React.Fragment>
                     {value.map((v, idx) => {
                         console.dir(v)
-                        return this.props.children(v, idx, lens.select(s => s[idx]))
-                    }) /* TODO select path */}
+                        return this.props.children(v, idx, lens.select(idx))
+                    })}
                 </React.Fragment>
             )
         }
@@ -137,8 +137,8 @@ class MapProjector extends React.Component<
             return (
                 <React.Fragment>
                     {Object.keys(value).map(key =>
-                        this.props.children(value[key], key, lens.select(s => s[key]))
-                    ) /* TODO select path. TODO: for key lenses should have unique id */}
+                        this.props.children(value[key], key, lens.select(key))
+                    ) /* TODO: for key lenses should have unique id */}
                 </React.Fragment>
             )
         }

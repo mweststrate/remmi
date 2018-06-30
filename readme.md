@@ -36,6 +36,8 @@ efficient (but not as efficient as mobx proably)
 
 Level 1: creating lenses
 
+level 1b: field lenses (strongly typed!)
+
 Level 2: subscribing
 
 Level 3: merging lenses
