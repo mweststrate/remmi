@@ -1,17 +1,18 @@
 import { BaseLens } from "./BaseLens";
-import { Selector } from "./Lens";
+import { Selector, Lens } from "./Lens";
+import { Pipe } from "./Pipe";
 
-export class Select<T = any> extends BaseLens<T> {
-    constructor(private base: BaseLens<any>, private selector: Selector<any, T>) {
-        super()
+export class Select<B, R> extends Pipe implements Lens<R> {
+    constructor(base: BaseLens<any>, private selector: Selector<B, R>) {
+        super(base)
         // TODO: check args
     }
 
-    recompute(): T {
+    recompute(): R {
         return this.selector(this.base.value())
     }
 
-    update(updater: ((draft: T) => void)) {
+    update(updater: ((draft: R) => void)) {
         this.base.update(draft => {
             updater(this.selector(draft))
             // Note: deliberately no return is accepted from the updater,

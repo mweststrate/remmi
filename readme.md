@@ -80,3 +80,4 @@ TODO
 * [ ] nice toStrings
 * [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)`
 * [ ] `call` api `call(store$, addTodo)`
+* [ ] log lens

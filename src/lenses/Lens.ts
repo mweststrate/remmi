@@ -6,10 +6,14 @@ export interface Lens<T = any> {
     // static create
     value(): T
     subscribe(handler: Handler<T>): Disposer
-    select<X = any>(selector: (state: T) => X): Lens<X> // TODO: string based selector
     update(producer: ((draft: T) => void)): void // TODO: partial state
-    // selectAll(selector: string | ((state) => any)) // TODO type selector and such
+
+    select<X = any>(selector: (state: T) => X): Lens<X> // TODO: string based selector
     // merge(...lenses)
-    // transaction...
+    // fork
+    // log
+    // selectAll(selector: string | ((state) => any)) // TODO type selector and such
+    // readOnly
+
     // generator / iterator api?
 }

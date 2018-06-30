@@ -78,8 +78,8 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     abstract update(producer: ((draft: T) => void)): void
 
-    select<X = any>(selector: Selector<T, X>): Select<X> {
-        return new Select<X>(this, selector)
+    select<B = any, R = any>(selector: Selector<B, R>): Select<B, R> {
+        return new Select<B, R>(this, selector)
     }
 }
 
