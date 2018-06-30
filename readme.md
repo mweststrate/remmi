@@ -1,4 +1,4 @@
-# Immer store
+# Remmi
 
 _Go away! Nothing to see here yet_
 
@@ -12,10 +12,13 @@ ___
 1. view oriented
 1. Glitch free
 1. straightforward async processes
+1. atomic transaction
 
 ---
 
 # Design
+
+Counter part of immer
 
 Everything is a lens
 
@@ -62,3 +65,18 @@ Recipes
 - references
 
 - connect to db
+
+---
+
+TODO
+
+* [ ] project setup
+* [ ] transactional
+* [ ] record / replay (fork / rebase) api's
+* [ ] readonly
+* [ ] accurate typings
+* [ ] separate bindings
+* [ ] symbol supports (primitive, observable, json etc)
+* [ ] nice toStrings
+* [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)`
+* [ ] `call` api `call(store$, addTodo)`

@@ -241,3 +241,18 @@ test("future ref", () => {
     expect(s.value()).toEqual({ users: { michel: "michel" }})
 })
 
+test("no glitches", () => {
+    const x = createStore({ x: 3, y: 4})
+    const sum = merge(x.select(x => x.x), x.select(y => y.y)).select(([x, y]) => x + y)
+    const values = []
+    sum.subscribe(s => values.push(s))
+
+    x.update(x => {
+        x.x = 4
+    })
+    x.update(x => {
+        x.y = 6
+        x.x = 6
+    })
+    expect(values).toEqual([8, 12])
+})
