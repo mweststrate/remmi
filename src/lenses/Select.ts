@@ -3,7 +3,7 @@ import { Selector, Lens } from "./Lens";
 import { Pipe } from "./Pipe";
 
 export class Select<B, R> extends Pipe implements Lens<R> {
-    constructor(base: BaseLens<any>, private selector: Selector<B, R>) {
+    constructor(base: BaseLens<any>, public selector: Selector<B, R>) {
         super(base)
         // TODO: check args
     }

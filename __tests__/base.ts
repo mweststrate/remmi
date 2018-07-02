@@ -367,3 +367,22 @@ test("cleanup", () => {
     inc()
     expect(events.splice(0)).toEqual([])
 })
+
+test("cache lenses", () => {
+    const s = createStore({ x : { y : { z: 4 } }})
+    const x = s.select("x")
+    const getY = x => x.y
+    const y = x.select(getY)
+    const d = y.subscribe(() => {})
+
+    const x2 = s.select("x")
+    expect(x2).toBe(x)
+    debugger
+    const y2 = x2.select(getY)
+    expect(y2).toBe(y)
+
+    d()
+    const x3 = s.select("x")
+    expect(x3).not.toBe(x) // ideally it would be the same, but we cannot implement that without leaking memory
+
+})

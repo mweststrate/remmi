@@ -2,7 +2,7 @@ import { fail } from "../utils"
 import { Lens, Handler, Disposer, Selector } from "./Lens";
 
 export abstract class BaseLens<T = any> implements Lens<T> {
-    readonly selectorCache = new Map<string, BaseLens>() // TODO: this creates a memory leak, how to fix?
+    readonly selectorCache = new Map<any, BaseLens>()
 
     // optimization: initialize fields as empty
     // optimization: no forEach
@@ -60,12 +60,19 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     registerDerivation(lens: BaseLens) {
         if (!this.hot) this.resume()
         this.derivations.push(lens)
+        if (lens instanceof Select || lens instanceof SelectField) {
+            // not entirely happy on only caching selectors as long as the lens is hot,
+            // but without a map of weak references we can otherwise not prevent leaking memory...
+            this.selectorCache.set(lens.selector, lens)
+        }
     }
 
     removeDerivation(lens: BaseLens) {
         const idx = this.derivations.indexOf(lens)
         if (idx === -1) fail("Illegal state") // todo fail
         this.derivations.splice(idx, 1)
+        if (lens instanceof Select || lens instanceof SelectField)
+            this.selectorCache.delete(lens.selector)
         if (!this.hot) {
             this.state = undefined // prevent leaking mem
             this.suspend()
@@ -83,15 +90,16 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     select<R = any>(selector: Selector<T, R>|string|number): Lens<R> {
         if (typeof selector === "number")
             selector = ""  +selector // normalize to string
+        // if we created a lens for the very same selector before, find it!
+        let s: BaseLens | undefined = this.selectorCache.get(selector)
+        if (s) return s
         if (typeof selector === "string") {
-            const existing = this.selectorCache.get(selector)
-            // if we created a lens for the very same selector before, find it!
-            if (existing) return existing as any
-            const s = new SelectField(this, selector)
-            this.selectorCache.set(selector, s)
-            return s
+            s = new SelectField(this, selector)
+        } else {
+            s = new Select<T, R>(this, selector)
         }
-        return new Select<T, R>(this, selector)
+        this.selectorCache.set(selector, s)
+        return s
     }
 }
 
