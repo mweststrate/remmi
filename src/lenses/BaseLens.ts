@@ -101,6 +101,19 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         this.selectorCache.set(selector, s)
         return s
     }
+
+    readOnly() {
+        return new ReadOnly(this)
+    }
+
+    fork(recordActions: true): Recorder<T>
+    fork(recordActions?: boolean): Lens<T>
+    fork(recordActions = false) {
+        const fork = createStore(this.value())
+        if (recordActions)
+            return new Recorder(fork)
+        return fork
+    }
 }
 
 function notify(subscriptions: Handler[], value: any) {
@@ -117,4 +130,7 @@ function subscribe(subscriptions: Handler[], handler: Handler): Disposer {
 
 import { Select } from "./Select"
 import { SelectField } from "./SelectField"
+import { ReadOnly } from "./ReadOnly";
+import { Recorder } from "./Recorder";
+import { createStore } from "../immer-store";
 

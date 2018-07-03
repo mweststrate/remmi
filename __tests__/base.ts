@@ -114,7 +114,10 @@ test("combine lenses", () => {
     const michel = store.select(s => s.users.michel)
     const merger = merge(store, michel)
     // const friend = merger.select(([store, michel]) => store.users[michel.friend])
-    const friend = merge(store.select(s => s.users), michel.select(m => m.friend)).select(([users, friend]) => users[friend])
+    const friend = merge(
+        store.select(s => s.users),
+        michel.select(m => m.friend)
+    ).select(([users, friend]) => users[friend])
     const age = friend.select(f => f.age)
 
     expect(friend.value().age).toBe(10)
@@ -178,7 +181,9 @@ test("combine lenses - fields", () => {
     const store = createStore(data)
     const michel = store.select("users").select("michel") // strongly typed!
     const merger = merge(store, michel)
-    const friend = merge(store.select("users"), michel.select("friend")).select(([users, friend]) => users[friend])
+    const friend = merge(store.select("users"), michel.select("friend")).select(
+        ([users, friend]) => users[friend]
+    )
     const age = friend.select("age")
 
     expect(friend.value().age).toBe(10)
@@ -242,7 +247,11 @@ test("combine lenses - proxy", () => {
     const store = autoLens(createStore(data))
 
     const michel = store.users.michel
-    const friend = autoLens(merge(store.users, michel.friend).select(([users, friend]) => users[friend])) // TODO: new autoLens is weird...
+    const friend = autoLens(
+        merge(store.users, michel.friend).select(
+            ([users, friend]) => users[friend]
+        )
+    ) // TODO: new autoLens is weird...
     const age = friend.age
 
     expect(age.value()).toBe(10)
@@ -260,7 +269,7 @@ test("combine lenses - proxy", () => {
 
     expect(friend.value()).toBe(store.value().users.piet)
 
-    store.update((store) => {
+    store.update(store => {
         store.users.piet.age = 42
     })
 
@@ -289,7 +298,7 @@ test("combine lenses - proxy", () => {
 test("future ref", () => {
     const s = createStore({} as any)
 
-    const values:any = []
+    const values: any = []
     const michel = s.select(s => s.users).select(users => users && users.michel)
     michel.subscribe(v => values.push(v))
 
@@ -301,12 +310,14 @@ test("future ref", () => {
     })
 
     expect(values).toEqual(["michel"])
-    expect(s.value()).toEqual({ users: { michel: "michel" }})
+    expect(s.value()).toEqual({users: {michel: "michel"}})
 })
 
 test("no glitches", () => {
-    const x = createStore({ x: 3, y: 4})
-    const sum = merge(x.select(x => x.x), x.select(y => y.y)).select(([x, y]) => x + y)
+    const x = createStore({x: 3, y: 4})
+    const sum = merge(x.select(x => x.x), x.select(y => y.y)).select(
+        ([x, y]) => x + y
+    )
     const values = []
     sum.subscribe(s => values.push(s))
 
@@ -322,10 +333,11 @@ test("no glitches", () => {
 
 test("cleanup", () => {
     const events: string[] = []
-    const x = createStore({ a: { b: { c : 3 }}, x: 1})
-    const inc = () => x.update(x => {
-        x.a.b.c += 1
-    })
+    const x = createStore({a: {b: {c: 3}}, x: 1})
+    const inc = () =>
+        x.update(x => {
+            x.a.b.c += 1
+        })
 
     const a = x.select(x => {
         events.push("select a")
@@ -348,20 +360,33 @@ test("cleanup", () => {
     })
 
     inc()
-    expect(events.splice(0)).toEqual(["select a", "select b", "select c", "sub c: 5"])
+    expect(events.splice(0)).toEqual([
+        "select a",
+        "select b",
+        "select c",
+        "sub c: 5"
+    ])
 
     const d2 = b.subscribe(v => {
         events.push("sub b: " + JSON.stringify(v))
     })
     inc()
-    expect(events.splice(0)).toEqual(["select a", "select b", "sub b: {\"c\":6}", "select c", "sub c: 6"])
+    expect(events.splice(0)).toEqual([
+        "select a",
+        "select b",
+        'sub b: {"c":6}',
+        "select c",
+        "sub c: 6"
+    ])
 
-    x.update(x => { x.y = 4 })
+    x.update(x => {
+        x.y = 4
+    })
     expect(events.splice(0)).toEqual(["select a"])
 
     d1()
     inc()
-    expect(events.splice(0)).toEqual(["select a", "select b", "sub b: {\"c\":7}"])
+    expect(events.splice(0)).toEqual(["select a", "select b", 'sub b: {"c":7}'])
 
     d2()
     inc()
@@ -369,7 +394,7 @@ test("cleanup", () => {
 })
 
 test("cache lenses", () => {
-    const s = createStore({ x : { y : { z: 4 } }})
+    const s = createStore({x: {y: {z: 4}}})
     const x = s.select("x")
     const getY = x => x.y
     const y = x.select(getY)
@@ -384,5 +409,72 @@ test("cache lenses", () => {
     d()
     const x3 = s.select("x")
     expect(x3).not.toBe(x) // ideally it would be the same, but we cannot implement that without leaking memory
+})
 
+test("async updates work fine", async () => {
+    const events = []
+    const s = createStore({x: 1})
+    s.subscribe(s => s.x)
+
+    s.update(d => {
+        d.x++
+    })
+    await Promise.resolve()
+    s.update(d => {
+        d.x++
+    })
+    expect(s.value()).toEqual({x: 3})
+})
+
+test("forking", () => {
+    const s = createStore({x: 1})
+    const s2 = s.fork()
+    s.update(d => {
+        d.x++
+    })
+    expect(s.value().x).toBe(2)
+    expect(s2.value().x).toBe(1)
+    s2.update(d => {
+        d.x = 5
+    })
+    expect(s.value().x).toBe(2)
+    expect(s2.value().x).toBe(5)
+})
+
+test("forking - replay", () => {
+    const s = createStore({x: 1})
+    const s2 = s.fork(true)
+    s.update(d => {
+        d.x++
+    })
+    expect(s.value().x).toBe(2)
+    expect(s2.value().x).toBe(1)
+    s2.update(d => {
+        d.x = 5
+    })
+    expect(s.value().x).toBe(2)
+    expect(s2.value().x).toBe(5)
+    s2.replay(s)
+    expect(s.value().x).toBe(5)
+})
+
+test("forking - replay - erroring", () => {
+    const s = createStore({x: {y: 1}})
+    const s2 = s.fork(true)
+    s.update(d => {
+        delete d.x
+    })
+    s2.update(d => {
+        d.z = 2
+    })
+    s2.update(d => {
+        d.x.y++
+    })
+    expect(s.value()).toEqual({})
+    expect(s2.value()).toEqual({x: {y: 2}, z: 2})
+    expect(() => {
+        s2.replay(s)
+    }).toThrowError("Cannot read property 'y' of undefined")
+    expect(s.value()).toEqual({}) // z not introduced!
+    expect(s2.value()).toEqual({x: {y: 2}, z: 2})
 })
