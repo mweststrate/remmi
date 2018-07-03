@@ -1,6 +1,6 @@
 "use strict"
 
-import {createStore, autoLens, merge} from "../src/immer-store"
+import {createStore, merge} from "../src/immer-store"
 
 test("read & update through lens", () => {
     const data = {
@@ -67,30 +67,6 @@ test("read & update through subscription", () => {
     })
     expect(lens.value()).toEqual({c: 3})
     expect(values).toEqual([{x: 4, y: 5}, {x: 4, y: 6}, {a: 2}, null, {b: 3}])
-})
-
-test("read & update through proxy", () => {
-    const data = {
-        loc: {
-            x: 3,
-            y: 5
-        }
-    }
-
-    const store = autoLens(createStore(data))
-    expect(store.value()).toBe(data)
-    const lens = store.loc
-
-    expect(lens.x.value()).toBe(3)
-    const base = lens.value()
-    lens.update(l => {
-        l.x += 1
-    })
-
-    expect(lens.value()).not.toBe(base)
-    expect(lens.x.value()).toBe(4)
-
-    expect(store.value()).not.toBe(data)
 })
 
 test("combine lenses", () => {
@@ -202,74 +178,6 @@ test("combine lenses - fields", () => {
     expect(friend.value()).toBe(store.value().users.piet)
 
     merger.update(([store, michel]) => {
-        store.users.piet.age = 42
-    })
-
-    friend.update(f => {
-        f.age = 43
-    })
-
-    expect(ages).toEqual([12, 13, 20, 42, 43])
-
-    expect(store.value()).toEqual({
-        users: {
-            michel: {
-                name: "michel",
-                friend: "piet"
-            },
-            jan: {
-                age: 13
-            },
-            piet: {
-                age: 43
-            }
-        }
-    })
-})
-
-test("combine lenses - proxy", () => {
-    const data = {
-        users: {
-            michel: {
-                name: "michel",
-                friend: "jan"
-            },
-            jan: {
-                age: 10
-            },
-            piet: {
-                age: 20
-            }
-        }
-    }
-
-    const ages = []
-    const store = autoLens(createStore(data))
-
-    const michel = store.users.michel
-    const friend = autoLens(
-        merge(store.users, michel.friend).select(
-            ([users, friend]) => users[friend]
-        )
-    ) // TODO: new autoLens is weird...
-    const age = friend.age
-
-    expect(age.value()).toBe(10)
-    age.subscribe(age => ages.push(age))
-
-    store.update(s => {
-        s.users.jan.age = 12
-    })
-    store.update(s => {
-        s.users.jan.age = 13
-    })
-    michel.update(m => {
-        m.friend = "piet"
-    })
-
-    expect(friend.value()).toBe(store.value().users.piet)
-
-    store.update(store => {
         store.users.piet.age = 42
     })
 

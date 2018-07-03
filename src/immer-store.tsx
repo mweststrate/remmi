@@ -10,35 +10,9 @@ export function createStore<T>(initialValue: T): Lens<T> {
     return new Store(initialValue)
 }
 
-export function autoLens(baseLens: Lens) {
-    return createProxyLens(baseLens, x => x)
-}
-
 // TODO proper typings
 export function merge(...lenses: Lens[]) {
     return new Merge(lenses)
-}
-
-function createProxyLens(baseLens: Lens, property: string | number) {
-    const lens = baseLens.select(property) // TODO: create delegator around lens to minimize api surface?
-    return new Proxy(lens, traps)
-}
-
-const traps = {
-    get(target: any, property: PropertyKey): any {
-        if (property in target) {
-            const value = target[property]
-            if (typeof value === 'function')
-                // TODO: blegh
-                return value.bind(target) // avoid being called with 'this' as proxy
-            return value
-        }
-        // optimize: cache
-        return createProxyLens(target, property)
-    },
-    set() {
-        throw new Error("Cannot write property, use 'update' instead")
-    }
 }
 
 // TODO: read only lens
