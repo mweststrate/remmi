@@ -36,7 +36,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         }
     }
 
-    private get hot() {
+    protected get hot() {
         return this.subscriptions.length || this.derivations.length
     }
 
@@ -87,6 +87,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     abstract update(producer: ((draft: T) => void)): void
 
+    // TODO: type those and add to interface
     select<R = any>(selector: Selector<T, R>|string|number): Lens<R> {
         if (typeof selector === "number")
             selector = ""  +selector // normalize to string
@@ -114,6 +115,10 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             return new Recorder(fork)
         return fork
     }
+
+    all() {
+        return new All(this)
+    }
 }
 
 function notify(subscriptions: Handler[], value: any) {
@@ -133,4 +138,5 @@ import { SelectField } from "./SelectField"
 import { ReadOnly } from "./ReadOnly";
 import { Recorder } from "./Recorder";
 import { createStore } from "../immer-store";
+import { All } from "./All";
 

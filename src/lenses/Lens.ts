@@ -3,6 +3,7 @@ export type Selector<T = any, X = any> = (base: T) => X
 export type Disposer = () => void
 export type Updater<T = any> = (draft: T) => void
 
+// TODO: alllign with redux store api
 export interface Lens<T = any> {
     // static create
     value(): T
