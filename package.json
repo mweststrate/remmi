@@ -58,7 +58,7 @@
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-filesize": "^1.5.0",
     "rollup-plugin-node-resolve": "^3.0.2",
-    "rollup-plugin-typescript": "^0.8.1",
+    "rollup-plugin-typescript2": "^0.15.1",
     "rollup-plugin-uglify": "^2.0.1",
     "ts-jest": "^22.4.6",
     "typescript": "^2.9.2",
@@ -76,7 +76,9 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "testPathIgnorePatterns": ["examples/"],
+    "testPathIgnorePatterns": [
+      "examples/"
+    ],
     "moduleFileExtensions": [
       "ts",
       "tsx",

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "commonjs",
+    "module": "ES2015",
     "lib": ["es2015"], // TODO: or ES5?
     "declaration": true,
     "sourceMap": true,

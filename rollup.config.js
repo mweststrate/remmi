@@ -3,7 +3,7 @@ import commonjs from "rollup-plugin-commonjs"
 import filesize from "rollup-plugin-filesize"
 import resolve from "rollup-plugin-node-resolve"
 import uglify from "rollup-plugin-uglify"
-import typescript from 'rollup-plugin-typescript'
+import typescript from 'rollup-plugin-typescript2'
 
 function getConfig(dest, format, ugly) {
     const conf = {
@@ -18,7 +18,8 @@ function getConfig(dest, format, ugly) {
         external: ["react", "react-dom"],
         plugins: [
             typescript({
-                typescript: require("typescript")
+                typescript: require("typescript"),
+                check: false
             }),
             resolve({
                 jsnext: true
