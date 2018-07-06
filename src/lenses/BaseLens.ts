@@ -9,7 +9,8 @@ import {
     Lens,
     Handler,
     Disposer,
-    Selector
+    Selector,
+    notifyRead
 } from "../internal"
 
 export abstract class BaseLens<T = any> implements Lens<T> {
@@ -52,6 +53,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     value() {
+        notifyRead(this)
         if (this.hot) return this.state
         return this.recompute()
     }

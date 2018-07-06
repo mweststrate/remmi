@@ -1,7 +1,7 @@
 import { BaseLens } from "../internal";
 
 export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T> {
-    constructor(private bases: BaseLens[]) {
+    constructor(public bases: BaseLens[]) {
         super()
         // TODO: check args
     }
