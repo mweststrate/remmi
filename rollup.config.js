@@ -3,35 +3,27 @@ import commonjs from "rollup-plugin-commonjs"
 import filesize from "rollup-plugin-filesize"
 import resolve from "rollup-plugin-node-resolve"
 import uglify from "rollup-plugin-uglify"
-import babel from "rollup-plugin-babel"
+import typescript from 'rollup-plugin-typescript'
 
 function getConfig(dest, format, ugly) {
     const conf = {
-        input: "src/immer.js",
+        input: "src/remmi.tsx",
         output: {
             exports: "named",
             file: dest,
             format,
-            name: "immer",
+            name: "remmi",
             sourcemap: true
         },
+        external: ["react", "react-dom"],
         plugins: [
+            typescript({
+                typescript: require("typescript")
+            }),
             resolve({
                 jsnext: true
             }),
             commonjs(),
-            babel({
-                babelrc: false,
-                presets: [
-                    [
-                        "env",
-                        {
-                            modules: false
-                        }
-                    ]
-                ],
-                plugins: ["external-helpers"]
-            }),
             ugly &&
                 uglify(
                     {
@@ -61,9 +53,9 @@ function getConfig(dest, format, ugly) {
 }
 
 const config = [
-    getConfig("dist/immer.js", "cjs", false),
-    getConfig("dist/immer.umd.js", "umd", true),
-    getConfig("dist/immer.module.js", "es", false)
+    getConfig("dist/remmi.js", "cjs", false),
+    getConfig("dist/remmi.umd.js", "umd", true),
+    getConfig("dist/remmi.module.js", "es", false)
 ]
 
 export default config

@@ -137,6 +137,6 @@ import { Select } from "./Select"
 import { SelectField } from "./SelectField"
 import { ReadOnly } from "./ReadOnly";
 import { Recorder } from "./Recorder";
-import { createStore } from "../immer-store";
+import { createStore } from "../remmi";
 import { All } from "./All";
 

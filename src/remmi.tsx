@@ -1,5 +1,5 @@
 import produce from 'immer'
-import * as React from 'react' // TODO: seperate bundle
+import React from 'react' // TODO: seperate bundle
 import "./lenses/BaseLens";
 
 import { Store } from './lenses/Store';
