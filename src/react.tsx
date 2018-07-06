@@ -1,7 +1,5 @@
 import * as React from "react"
-import { Lens } from "./lenses/Lens";
-import { shallowEqual } from "./utils";
-import { merge } from "./remmi";
+import { Lens, shallowEqual,  merge, Tracker } from "./internal";
 
 // TODO: type the thing
 class Projector extends React.Component<
@@ -140,4 +138,21 @@ export function project(...args: any[]) {
 
 export function mapProject(lens: Lens, callback: (value: any, idx: string | number, lens: Lens) => React.ReactNode) {
     return <MapProjector lens={lens}>{callback}</MapProjector>
+}
+
+// TODO: find better name!
+export class Project extends React.Component {
+    tracker?: Tracker
+
+    render() {
+        if (!this.tracker) {
+            this.tracker = new Tracker(this.forceUpdate.bind(this))
+        }
+        return this.tracker.track(this.props.children as any)
+    }
+
+    componentWillUnmount() {
+        if (this.tracker)
+            this.tracker.dispose()
+    }
 }

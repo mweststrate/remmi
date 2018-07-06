@@ -1,1 +1,1 @@
-export { project, mapProject, createStore, merge, isLens, autorun, Tracker }  from "./internal"
+export { project, mapProject, createStore, merge, isLens, autorun, Tracker, Project }  from "./internal"
