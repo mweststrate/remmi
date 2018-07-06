@@ -76,6 +76,7 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testPathIgnorePatterns": ["examples/"],
     "moduleFileExtensions": [
       "ts",
       "tsx",

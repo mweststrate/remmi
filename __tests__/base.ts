@@ -1,6 +1,6 @@
 "use strict"
 
-import {createStore, merge} from "../src/immer-store"
+import {createStore, merge} from "../src/remmi"
 
 test("read & update through lens", () => {
     const data = {

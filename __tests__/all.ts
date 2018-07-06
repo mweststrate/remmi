@@ -1,6 +1,6 @@
 "use strict"
 
-import {createStore, merge} from "../src/immer-store"
+import {createStore, merge} from "../src/remmi"
 
 test("all 1", () => {
     const s = createStore({
