@@ -1,5 +1,5 @@
-import { BaseLens } from "./BaseLens";
-import { Pipe } from "./Pipe";
+import { BaseLens, Pipe } from "../internal";
+
 
 // Specialized version of select, that only selects a certain sub property
 // saves a lot of closures during selection, and handles undefined values transparently

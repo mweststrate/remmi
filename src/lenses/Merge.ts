@@ -1,5 +1,4 @@
-import { BaseLens } from "./BaseLens";
-import { fail, shallowEqual } from "../utils"
+import { BaseLens } from "../internal";
 
 export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T> {
     constructor(private bases: BaseLens[]) {

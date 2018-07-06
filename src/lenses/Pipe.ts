@@ -1,4 +1,4 @@
-import { BaseLens } from "./BaseLens";
+import { BaseLens } from "../internal";
 
 // lens that doesn't do anything particullary useful (it just returns it's parents value),
 // yet is useful for subclassing

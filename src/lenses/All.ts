@@ -1,7 +1,4 @@
-import {BaseLens} from "./BaseLens"
-import {Pipe} from "./Pipe"
-import {fail, shallowEqual} from "../utils"
-import {Lens} from "./Lens"
+import { Lens, BaseLens, shallowEqual, Pipe } from "../internal";
 
 export class All extends Pipe {
     previousKeySet: number | string[] | undefined = undefined

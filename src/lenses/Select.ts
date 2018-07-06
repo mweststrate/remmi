@@ -1,6 +1,4 @@
-import { BaseLens } from "./BaseLens";
-import { Selector, Lens } from "./Lens";
-import { Pipe } from "./Pipe";
+import { Pipe, Lens, Selector, BaseLens } from "../internal";
 
 export class Select<B, R> extends Pipe implements Lens<R> {
     constructor(base: BaseLens<any>, public selector: Selector<B, R>) {

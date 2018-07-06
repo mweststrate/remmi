@@ -1,5 +1,4 @@
-import { Pipe } from "./Pipe";
-import { Updater, Lens } from "./Lens";
+import { Pipe, Updater, Lens } from "../internal";
 
 // TODO: create interface?
 export class Recorder<T> extends Pipe implements Lens<T> {

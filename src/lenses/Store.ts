@@ -1,7 +1,6 @@
-import { fail, noop } from "../utils"
 import produce from "immer"
 
-import { BaseLens } from "./BaseLens";
+import { fail, noop, BaseLens } from "../internal"
 
 export class Store<T = any> extends BaseLens<T> {
     private currentDraft?: T

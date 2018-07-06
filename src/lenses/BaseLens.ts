@@ -1,5 +1,16 @@
-import { fail } from "../utils"
-import { Lens, Handler, Disposer, Selector } from "./Lens";
+import {
+    fail,
+    Select,
+    SelectField,
+    ReadOnly,
+    Recorder,
+    createStore,
+    All,
+    Lens,
+    Handler,
+    Disposer,
+    Selector
+} from "../internal"
 
 export abstract class BaseLens<T = any> implements Lens<T> {
     readonly selectorCache = new Map<any, BaseLens>()
@@ -132,11 +143,3 @@ function subscribe(subscriptions: Handler[], handler: Handler): Disposer {
         if (idx !== -1) subscriptions.splice(idx, 1)
     }
 }
-
-import { Select } from "./Select"
-import { SelectField } from "./SelectField"
-import { ReadOnly } from "./ReadOnly";
-import { Recorder } from "./Recorder";
-import { createStore } from "../remmi";
-import { All } from "./All";
-

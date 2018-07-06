@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { Lens } from "./lenses/Lens";
 import { shallowEqual } from "./utils";
 import { merge } from "./remmi";

@@ -7,7 +7,7 @@ import typescript from 'rollup-plugin-typescript'
 
 function getConfig(dest, format, ugly) {
     const conf = {
-        input: "src/remmi.tsx",
+        input: "src/remmi.ts",
         output: {
             exports: "named",
             file: dest,
