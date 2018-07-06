@@ -11,6 +11,7 @@
   "scripts": {
     "watch": "jest --watch",
     "test": "jest",
+    "test:build": "yarn-or-npm run build && node -e 'require(\".\")",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "build": "rimraf dist/ && cross-env NODE_ENV=production rollup -c && cpx \"src/remmi.{d.ts,js.flow}\" dist",
     "prettier": "prettier \"*/**/*.ts*\" --ignore-path ./.prettierignore --write",

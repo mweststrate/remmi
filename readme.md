@@ -72,10 +72,10 @@ Recipes
 
 TODO
 
-* [ ] project setup
-* [ ] transactional
-* [ ] record / replay (fork / rebase) api's
-* [ ] readonly
+* [x] project setup
+* [x] transactional
+* [x] record / replay (fork / rebase) api's
+* [x] readonly
 * [ ] accurate typings
 * [ ] separate bindings
 * [ ] symbol supports (primitive, observable, json etc)
@@ -83,3 +83,5 @@ TODO
 * [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)`
 * [ ] `call` api `call(store$, addTodo)`
 * [ ] log lens
+* [ ] funny api?
+* [ ] separate export for react bindings
