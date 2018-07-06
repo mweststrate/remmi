@@ -1,3 +1,4 @@
+import "./lenses/Lens" // without this rollup will drop the side-effect free Lens file
 export * from "./lenses/Lens"
 export * from "./lenses/BaseLens"
 export * from "./lenses/Pipe"
