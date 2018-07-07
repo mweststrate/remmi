@@ -10,7 +10,8 @@ import {
     Handler,
     Disposer,
     Selector,
-    notifyRead
+    notifyRead,
+    once
 } from "../internal"
 
 export abstract class BaseLens<T = any> implements Lens<T> {
@@ -33,7 +34,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     propagateReady(changed: boolean) {
         if (changed) this.changedParents++
-        if (--this.dirty === 0) {
+        if (this.dirty > 0 && --this.dirty === 0) {
             if (this.changedParents) {
                 this.changedParents = 0
                 const old = this.state
@@ -46,6 +47,9 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             }
             this.derivations.forEach(d => d.propagateReady(false))
         }
+        // if (this.dirty < 0) {
+        //     fail("illegal state")
+        // }
     }
 
     protected get hot() {
@@ -53,25 +57,31 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     value() {
+        const res = this.hot ? this.state : this.recompute()
         notifyRead(this)
-        if (this.hot) return this.state
-        return this.recompute()
+        return res
     }
 
     subscribe(handler: Handler<T>) {
-        if (!this.hot) this.resume()
+        if (!this.hot) {
+            this.state = this.recompute() // TODO: do this lazily?
+            this.resume()
+        }
         const disposer = subscribe(this.subscriptions, handler)
-        return () => { // optimize: shouldn't need additional closure
+        return once(() => { // optimize: shouldn't need additional closure
             disposer()
             if (!this.hot) {
                 this.state = undefined // prevent leaking mem
                 this.suspend()
             }
-        }
+        })
     }
 
     registerDerivation(lens: BaseLens) {
-        if (!this.hot) this.resume()
+        if (!this.hot) {
+            this.state = this.recompute() // TODO: do this lazily?
+            this.resume()
+        }
         this.derivations.push(lens)
         if (lens instanceof Select || lens instanceof SelectField) {
             // not entirely happy on only caching selectors as long as the lens is hot,

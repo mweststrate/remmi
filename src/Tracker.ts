@@ -24,6 +24,7 @@ export class Tracker {
             const newDeps = Array.from(dependencies)
             if (!shallowEqual(newDeps, this.merge.bases)) {
                 const { mergeSub } = this
+                // optimization; don't create merge if only one dep
                 this.merge = new Merge(newDeps as any) // TODO: fix typings
                 this.mergeSub = this.merge.subscribe(this.onInvalidate)
                 mergeSub()

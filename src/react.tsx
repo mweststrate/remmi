@@ -146,7 +146,9 @@ export class Project extends React.Component {
 
     render() {
         if (!this.tracker) {
-            this.tracker = new Tracker(this.forceUpdate.bind(this))
+            this.tracker = new Tracker(() => {
+                this.forceUpdate()
+            })
         }
         return this.tracker.track(this.props.children as any)
     }

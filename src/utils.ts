@@ -14,3 +14,13 @@ export function shallowEqual(ar1: any, ar2: any) {
     for (let i = 0; i < ar1.length; i++) if (ar1[i] !== ar2[i]) return false
     return true
 }
+
+export function once(fn: () => void): () => void {
+    let executed = false
+    return () => {
+        if (!executed) {
+            executed = true
+            fn()
+        }
+    }
+}
