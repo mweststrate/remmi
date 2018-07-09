@@ -12,16 +12,16 @@ test("all 1", () => {
 
     const v = a.value()
     expect(v.length).toBe(2)
-    expect(v[0][0]).toBe("a")
-    expect(v[1][0]).toBe("b")
+    expect(v[0].key).toBe("a")
+    expect(v[1].key).toBe("b")
 
-    const lA = v[0][1]
-    const lB = v[1][1]
+    const lA = v[0]
+    const lB = v[1]
     expect(lA.value()).toBe(3)
     expect(lB.value()).toEqual({ x: 4 })
 
     const sub = a.subscribe(newValue => {
-        expect(newValue).toEqual([["b", lB]])
+        expect(newValue).toEqual([lB])
     })
     s.update(d => { delete d.a })
 })

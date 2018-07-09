@@ -11,7 +11,9 @@ import {
     Disposer,
     Selector,
     notifyRead,
-    once
+    once,
+    ShallowEqual,
+    emptyArray
 } from "../internal"
 
 export abstract class BaseLens<T = any> implements Lens<T> {
@@ -134,6 +136,10 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         return new ReadOnly(this)
     }
 
+    shallowEqual() {
+        return new ShallowEqual(this)
+    }
+
     fork(recordActions: true): Recorder<T>
     fork(recordActions?: boolean): Lens<T>
     fork(recordActions = false) {
@@ -143,9 +149,25 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         return fork
     }
 
-    all() {
+    keys() {
+        return this.select(keySelector).shallowEqual()
+    }
+
+    all() { // TODO: type
         return new All(this)
     }
+}
+
+function keySelector(value: any): (number | string)[] {
+    if (Array.isArray(value))
+        return value.map((_v, idx) => idx) // optimize!
+    if (value !== null && typeof value === "object")
+        return Object.keys(value)
+    return emptyArray
+}
+
+function keysToLenses(v: [keys: (number | string)[]): Lens<any>[] { // type
+    return keys.map(key => ) // optimize
 }
 
 function notify(subscriptions: Handler[], value: any) {
