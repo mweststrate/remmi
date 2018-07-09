@@ -23,4 +23,8 @@ export class SelectField extends Pipe {
             else fail(`Cannot update field ${this.selector} of non-object value ${draft}`)
         })
     }
+
+    getCacheKey() {
+        return this.selector
+    }
 }

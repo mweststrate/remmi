@@ -67,5 +67,7 @@ export class All extends Pipe {
         )
     }
 
-    // TODO: make sure all selector is cached as well!
+    getCacheKey() {
+        return All
+    }
 }

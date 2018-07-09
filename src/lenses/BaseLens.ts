@@ -64,7 +64,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     subscribe(handler: Handler<T>) {
         if (!this.hot) {
-            this.state = this.recompute() // TODO: do this lazily?
+            // this.state = this.recompute() // TODO: do this lazily?
             this.resume()
         }
         const disposer = subscribe(this.subscriptions, handler)
@@ -79,14 +79,15 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     registerDerivation(lens: BaseLens) {
         if (!this.hot) {
-            this.state = this.recompute() // TODO: do this lazily?
+            // this.state = this.recompute() // TODO: do this lazily?
             this.resume()
         }
         this.derivations.push(lens)
-        if (lens instanceof Select || lens instanceof SelectField) {
+        const cacheKey = lens.getCacheKey()
+        if (cacheKey !== undefined) {
             // not entirely happy on only caching selectors as long as the lens is hot,
             // but without a map of weak references we can otherwise not prevent leaking memory...
-            this.selectorCache.set(lens.selector, lens)
+            this.selectorCache.set(cacheKey, lens)
         }
     }
 
@@ -94,8 +95,9 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         const idx = this.derivations.indexOf(lens)
         if (idx === -1) fail("Illegal state") // todo fail
         this.derivations.splice(idx, 1)
-        if (lens instanceof Select || lens instanceof SelectField)
-            this.selectorCache.delete(lens.selector)
+        const cacheKey = lens.getCacheKey()
+        if (cacheKey !== undefined)
+            this.selectorCache.delete(cacheKey)
         if (!this.hot) {
             this.state = undefined // prevent leaking mem
             this.suspend()
@@ -109,6 +111,8 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     abstract suspend();
 
     abstract update(producer: ((draft: T) => void)): void
+
+    abstract getCacheKey(): any;
 
     // TODO: type those and add to interface
     select<R = any>(selector: Selector<T, R>|string|number): Lens<R> {

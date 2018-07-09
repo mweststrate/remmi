@@ -2,7 +2,7 @@ import { BaseLens } from "../internal";
 
 // lens that doesn't do anything particullary useful (it just returns it's parents value),
 // yet is useful for subclassing
-export class Pipe extends BaseLens {
+export abstract class Pipe extends BaseLens {
     constructor(protected base: BaseLens) {
         super()
         // TODO: check args

@@ -46,4 +46,8 @@ export class Store<T = any> extends BaseLens<T> {
     suspend() {
         fail("nope")
     }
+
+    getCacheKey() {
+        fail("nope")
+    }
 }

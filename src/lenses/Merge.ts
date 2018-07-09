@@ -36,4 +36,8 @@ export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T
     suspend() {
         this.bases.forEach(b => b.removeDerivation(this))
     }
+
+    getCacheKey() {
+        return undefined; // no simple cache key
+    }
 }
