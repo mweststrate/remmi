@@ -5,7 +5,7 @@ import { fail, noop, BaseLens } from "../internal"
 export class Store<T = any> extends BaseLens<T> {
     private currentDraft?: T
 
-    constructor(initialValue: T) {
+    constructor(initialValue: T, private name: string) {
         super()
         this.state = initialValue
         this.subscribe(noop) // stores are always kept alive
@@ -50,4 +50,9 @@ export class Store<T = any> extends BaseLens<T> {
     getCacheKey() {
         fail("nope")
     }
+
+    describe() {
+        return this.name
+    }
+
 }

@@ -176,6 +176,7 @@ test("combine lenses - fields", () => {
     })
 
     expect(friend.value()).toBe(store.value().users.piet)
+    expect("" + friend).toMatchSnapshot()
 
     merger.update(([store, michel]) => {
         store.users.piet.age = 42

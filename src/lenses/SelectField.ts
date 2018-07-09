@@ -27,4 +27,8 @@ export class SelectField extends Pipe {
     getCacheKey() {
         return this.key
     }
+
+    describe() {
+        return `${this.base.describe()}.${this.key}`
+    }
 }

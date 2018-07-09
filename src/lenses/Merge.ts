@@ -40,4 +40,8 @@ export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T
     getCacheKey() {
         return undefined; // no simple cache key
     }
+
+    describe() {
+        return "merge(" + this.bases.map(b => b.describe()).join(", ") + ")"
+    }
 }

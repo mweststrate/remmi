@@ -39,4 +39,8 @@ export class Recorder<T> extends Pipe implements Lens<T> {
     getCacheKey() {
         return undefined; // no caching!
     }
+
+    describe() {
+        return this.base.describe() + ".recorder()"
+    }
 }

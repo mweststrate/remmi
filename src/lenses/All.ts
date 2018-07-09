@@ -19,4 +19,8 @@ export class All extends Pipe {
     getCacheKey() {
         return All
     }
+
+    describe() {
+        return this.source.describe() + ".all()"
+    }
 }

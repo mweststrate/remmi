@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`combine lenses - fields 1`] = `
+"Lens[merge(Store4.users, Store4.users.michel.friend).{function (_a) {
+        var users = _a[0],friend = _a[1];
+        return users[friend];
+    }}]"
+`;

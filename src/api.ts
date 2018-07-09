@@ -1,7 +1,9 @@
 import {Lens, Store, Merge, BaseLens} from "./internal"
 
-export function createStore<T>(initialValue: T): Lens<T> {
-    return new Store(initialValue)
+let storeId = 0
+
+export function createStore<T>(initialValue: T, name: string = "Store" + (++storeId)): Lens<T> {
+    return new Store(initialValue, name)
 }
 
 // TODO proper typings

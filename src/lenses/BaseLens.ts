@@ -106,6 +106,10 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         }
     }
 
+    toString() {
+        return `Lens[${this.describe()}]`
+    }
+
     abstract recompute(): T;
 
     abstract resume();
@@ -115,6 +119,8 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     abstract update(producer: ((draft: T) => void)): void
 
     abstract getCacheKey(): any;
+
+    abstract describe(): string
 
     // TODO: type those and add to interface
     select<R = any>(selector: Selector<T, R>|string|number): Lens<R> {

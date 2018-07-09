@@ -8,4 +8,8 @@ export class ReadOnly extends Pipe {
     getCacheKey() {
         return ReadOnly
     }
+
+    describe() {
+        return this.base.describe() + ".readOnly()"
+    }
 }

@@ -11,4 +11,8 @@ export class ShallowEqual extends Pipe {
     getCacheKey() {
         return ShallowEqual
     }
+
+    describe() {
+        return `${this.base.describe()}.shallowEqual()`
+    }
 }

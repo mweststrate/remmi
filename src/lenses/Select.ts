@@ -21,4 +21,8 @@ export class Select<B, R> extends Pipe implements Lens<R> {
     getCacheKey() {
         return this.selector
     }
+
+    describe() {
+        return `${this.base.describe()}.{${this.selector.toString()}}` // TODO: improve
+    }
 }
