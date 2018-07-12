@@ -1,4 +1,6 @@
-import { BaseLens } from "../internal";
+import { BaseLens, Lens } from "../internal";
+
+const mergeCache = new Map<string, Merge<any, any>>()
 
 export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T> {
     constructor(public bases: BaseLens[]) {
@@ -30,18 +32,35 @@ export class Merge<X=any, T extends ReadonlyArray<X> = any[]> extends BaseLens<T
     }
 
     resume() {
+        mergeCache.set(getMergeCacheKey(this.bases), this)
         this.bases.forEach(b => b.registerDerivation(this))
     }
 
     suspend() {
+        const ck = getMergeCacheKey(this.bases)
+        if (mergeCache.get(ck) as any === this)
+            mergeCache.delete(ck)
         this.bases.forEach(b => b.removeDerivation(this))
     }
 
     getCacheKey() {
-        return undefined; // no simple cache key
+        return undefined; // no simple cache key, but, see merge cache!
     }
+
 
     describe() {
         return "merge(" + this.bases.map(b => b.describe()).join(", ") + ")"
     }
+}
+
+function getMergeCacheKey(bases: Lens[]): string {
+    return bases.map(b => (b as BaseLens).lensId).join(";")
+}
+
+// TODO proper typings
+export function merge(...lenses: Lens[]): Lens {
+    const existing = mergeCache.get(getMergeCacheKey(lenses))
+    if (existing)
+        return existing
+    return new Merge(lenses as any)
 }

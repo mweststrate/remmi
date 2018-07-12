@@ -387,3 +387,25 @@ test("forking - replay - erroring", () => {
     expect(s.value()).toEqual({}) // z not introduced!
     expect(s2.value()).toEqual({x: {y: 2}, z: 2})
 })
+
+test("cache merge", () => {
+    const s = createStore({x: {y: 1}})
+    const x = s.select("x")
+    const m1 = merge(s, x)
+    let m2 = merge(s, x)
+    expect(m2).not.toBe(m1) // not cached
+
+    const d = m1.subscribe(() => {})
+    m2 = merge(s, x)
+    expect(m2).toBe(m1) // from cache
+
+    m2 = merge(x, s)
+    expect(m2).not.toBe(m1) // order matters
+
+    m2 = merge(s, s.select("x"))
+    expect(m2).toBe(m1) // from cache
+
+    d()
+    m2 = merge(s, x)
+    expect(m2).not.toBe(m1) // not cached
+})

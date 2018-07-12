@@ -16,6 +16,8 @@ import {
     emptyArray
 } from "../internal"
 
+let lensId = 0;
+
 export abstract class BaseLens<T = any> implements Lens<T> {
     readonly selectorCache = new Map<any, BaseLens>()
 
@@ -25,6 +27,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     readonly derivations: BaseLens[] = []
     readonly parents: BaseLens[] = []
 
+    lensId = ++lensId
     dirty = 0
     changedParents = 0
     state: T

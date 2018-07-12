@@ -8,7 +8,7 @@ export function notifyRead(lens: Lens) {
 
 export class Tracker {
     merge: Merge = new Merge([])
-    mergeSub: Disposer = this.merge.subscribe(noop)
+    disposeMerge: Disposer = this.merge.subscribe(noop)
 
     constructor(private onInvalidate: () => void) {
 
@@ -23,18 +23,18 @@ export class Tracker {
         } finally {
             const newDeps = Array.from(dependencies)
             if (!shallowEqual(newDeps, this.merge.bases)) {
-                const { mergeSub } = this
+                const { disposeMerge } = this
                 // optimization; don't create merge if only one dep
                 this.merge = new Merge(newDeps as any) // TODO: fix typings
-                this.mergeSub = this.merge.subscribe(this.onInvalidate)
-                mergeSub()
+                this.disposeMerge = this.merge.subscribe(this.onInvalidate)
+                disposeMerge()
             }
             readListeners.delete(readListener)
         }
     }
 
     public dispose() {
-        this.mergeSub()
+        this.disposeMerge()
     }
 }
 
