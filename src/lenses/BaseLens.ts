@@ -13,8 +13,11 @@ import {
     notifyRead,
     once,
     ShallowEqual,
-    emptyArray
+    emptyArray,
+    defaultLog,
+    Log
 } from "../internal"
+import { ILogger } from "./Log";
 
 let lensId = 0;
 
@@ -164,6 +167,10 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     all() { // TODO: type
         return new All(this)
+    }
+
+    tap(logger: ILogger = defaultLog) {
+        return new Log(this, logger)
     }
 }
 

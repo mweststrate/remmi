@@ -409,3 +409,23 @@ test("cache merge", () => {
     m2 = merge(s, x)
     expect(m2).not.toBe(m1) // not cached
 })
+
+test("logging", () => {
+    const s = createStore({x: {y: 1}})
+    const y = s.select("x").select("y")
+    const stub = jest.fn()
+    const log = y.tap(stub)
+
+    s.update(d => { d.x.y = 2 }) // no update
+    expect(stub.mock.calls).toMatchSnapshot()
+
+    log.value()
+    log.value() // updated twice
+    expect(stub.mock.calls).toMatchSnapshot()
+
+    const d = log.subscribe(() => { })
+
+    s.update(d => { d.x.y = 3 }) // immediate update
+    expect(stub.mock.calls).toMatchSnapshot()
+    d()
+})

@@ -70,6 +70,11 @@ Recipes
 
 ---
 
+Gotchas
+
+* optimize: don't create selectors inline
+* don't accidentally return, like: `lens.update(x => x.y += 2)`
+
 TODO
 
 * [x] project setup

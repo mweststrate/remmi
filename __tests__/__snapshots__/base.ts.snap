@@ -6,3 +6,40 @@ exports[`combine lenses - fields 1`] = `
         return users[friend];
     }}]"
 `;
+
+exports[`logging 1`] = `Array []`;
+
+exports[`logging 2`] = `
+Array [
+  Array [
+    2,
+    undefined,
+    "Lens[Store17.x.y]",
+  ],
+  Array [
+    2,
+    undefined,
+    "Lens[Store17.x.y]",
+  ],
+]
+`;
+
+exports[`logging 3`] = `
+Array [
+  Array [
+    2,
+    undefined,
+    "Lens[Store17.x.y]",
+  ],
+  Array [
+    2,
+    undefined,
+    "Lens[Store17.x.y]",
+  ],
+  Array [
+    3,
+    undefined,
+    "Lens[Store17.x.y]",
+  ],
+]
+`;

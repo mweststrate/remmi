@@ -1,9 +1,10 @@
 import { Lens, Merge, shallowEqual, noop, Disposer } from "./internal";
 
-const readListeners = new Set<(lens: Lens) => void>()
+// TODO: use a global
+let readListener: undefined | ((lens: Lens) => void)
 
 export function notifyRead(lens: Lens) {
-    readListeners.forEach(h => h(lens)) // optimize
+    if (readListener) readListener(lens) // optimize
 }
 
 export class Tracker {
@@ -16,25 +17,29 @@ export class Tracker {
 
     public track<T>(fn: () => T): T {
         const dependencies = new Set<Lens>()
-        const readListener = dependencies.add.bind(dependencies)
-        readListeners.add(readListener)
+        const prevListener = readListener
+        readListener = dependencies.add.bind(dependencies)
         try {
             return fn()
         } finally {
             const newDeps = Array.from(dependencies)
-            if (!shallowEqual(newDeps, this.merge.bases)) {
+            if (!shallowEqual(newDeps, this.merge.bases)) { // TODO: still needed with merge caching?
                 const { disposeMerge } = this
                 // optimization; don't create merge if only one dep
                 this.merge = new Merge(newDeps as any) // TODO: fix typings
                 this.disposeMerge = this.merge.subscribe(this.onInvalidate)
                 disposeMerge()
             }
-            readListeners.delete(readListener)
+            readListener = prevListener
         }
     }
 
     public dispose() {
         this.disposeMerge()
+    }
+
+    public getDependencies(): Lens[] {
+        return this.merge.bases
     }
 }
 
