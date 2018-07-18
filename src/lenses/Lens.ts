@@ -18,6 +18,7 @@ export interface Lens<T = any> {
     // log
     // selectAll(selector: string | ((state) => any)) // TODO type selector and such
     // readOnly
+    render(renderer: (value: T) => React.ReactNode): React.ReactElement<any>
 
     // generator / iterator api?
 }

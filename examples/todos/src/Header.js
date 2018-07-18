@@ -8,19 +8,18 @@ export class Header extends React.Component {
 
     render() {
         const { store$ } = this.props
-        return <div>Header</div>
-        // return project(unfinishedTodoCount$, ([unfinishedTodoCount]) => (
-        //     <div>
-        //         Tasks left: {unfinishedTodoCount}
-        //         <br />
-        //         <button onClick={markAllCompleted.bind(null, store$)}>Toggle all</button>
-        //         <br />
-        //         New item: <input value={this.state.inputText} onChange={this.handleInputChange} />
-        //         <button onClick={this.handleCreateTodo}>Add</button>
-        //         <br />
-        //         <hr />
-        //     </div>
-        // ))
+        return unfinishedTodoCount$.render((unfinishedTodoCount) => (
+            <div>
+                Tasks left: {unfinishedTodoCount}
+                <br />
+                <button onClick={markAllCompleted.bind(null, store$)}>Toggle all</button>
+                <br />
+                New item: <input value={this.state.inputText} onChange={this.handleInputChange} />
+                <button onClick={this.handleCreateTodo}>Add</button>
+                <br />
+                <hr />
+            </div>
+        ))
     }
 
     handleInputChange = e => {

@@ -15,9 +15,12 @@ import {
     ShallowEqual,
     emptyArray,
     defaultLog,
-    Log
+    Log,
+    RenderLens,
+    RenderLenses
 } from "../internal"
 import { ILogger } from "./Log";
+import * as React from "react";
 
 let lensId = 0;
 
@@ -172,6 +175,22 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     tap(logger: ILogger = defaultLog) {
         return new Log(this, logger)
     }
+
+    // TODO: should accept oroginal lens as argument
+    render(renderer: (value: T) => React.ReactNode): React.ReactElement<any> {
+        return React.createElement(RenderLens, {
+            lens: this,
+            renderer
+        })
+    }
+
+    // TODO: should accept key as argument?
+    renderAll(renderer: (value: T) => React.ReactNode) {
+        return React.createElement(RenderLenses, {
+            lens: this,
+            renderer
+        })
+    )
 }
 
 function keySelector(value: any): (number | string)[] {

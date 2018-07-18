@@ -84,9 +84,11 @@ TODO
 * [ ] accurate typings
 * [ ] separate bindings
 * [ ] symbol supports (primitive, observable, json etc)
-* [ ] nice toStrings
+* [x] nice toStrings
 * [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)`
-* [ ] `call` api `call(store$, addTodo)`
-* [ ] log lens
+* [ ] custom lens creating:
+      * createLensType({ name: string, onCompute, onUpdate, onSuspend, chainable: true })
+* [ ] model api
+* [x] log lens
 * [ ] funny api?
 * [ ] separate export for react bindings

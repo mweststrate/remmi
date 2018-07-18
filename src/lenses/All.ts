@@ -1,4 +1,4 @@
-import { Lens, BaseLens, shallowEqual, Pipe } from "../internal";
+import { BaseLens, Pipe } from "../internal";
 
 export class All extends Pipe {
     constructor(private source: BaseLens<any>) {
@@ -6,10 +6,12 @@ export class All extends Pipe {
     }
 
     recompute() {
+        // source.keys() already includes shallow comparision, so
+        // base value has always introduced or removed entries here
         return this.base.value().map(key => this.source.select(key))
     }
 
-    update(updater: ((draft: any) => void)) {
+    update(_updater: ((draft: any) => void)) {
         // question: or make this actually possible, and just cal on base?
         fail(
             "Cannot call update on `.all()`, call update on an individual lens instead"

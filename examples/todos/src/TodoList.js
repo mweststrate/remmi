@@ -12,11 +12,9 @@ export class TodoList extends React.Component {
             <div>
                 <Header store$={store$} />
                 <ul>
-                    <Project>
-                        {() => <React.Fragment>
-                            {store$.select("todos").value().map((todo, idx) => <Todo key={idx} todo$={store$.select('todos').select(idx)} />)}
-                        </React.Fragment>}
-                    </Project>
+                    {store$.select("todos").renderAll(
+                        (todo, todo$) => <Todo todo$={todo$} />
+                    )}
                 </ul>
             </div>
         )
@@ -24,15 +22,10 @@ export class TodoList extends React.Component {
 }
 
 const Todo = ({ todo$ }) => {
-    return <Project>{
-        () => {
-            const todo = todo$.value()
-            // console.dir(todo)
-            return <li>
+    return todo$.render(todo =>
+            <li>
                 <input id={`input-${todo.id}`} type="checkbox" checked={todo.done} onClick={toggle.bind(null, todo$)} />
                 <label htmlFor={`input-${todo.id}`}>{todo.title}</label>
             </li>
-        }
-    }</Project>
-
+    )
 }
