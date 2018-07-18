@@ -12,9 +12,11 @@ export class Select<B, R> extends Pipe implements Lens<R> {
 
     update(updater: ((draft: R) => void)) {
         this.base.update(draft => {
-            updater(this.selector(draft))
+            const res = updater(this.selector(draft))
             // Note: deliberately no return is accepted from the updater,
             // as that would not be combinable with selector
+            if (res !== undefined)
+                fail("Select lens .update function should not return anything")
         })
     }
 

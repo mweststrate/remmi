@@ -1,10 +1,12 @@
 import * as React from 'react'
 
-import { autoRender } from 'remmi'
+import { autoRender, createStore } from 'remmi'
 import { unfinishedTodoCount$, markAllCompleted, addTodo } from './todoStore'
 
 export class Header extends React.Component {
-    state = { inputText: '' }
+    // No need to use lenses here, setState is just fine
+    // This is just to show off...
+    inputText$ = createStore("")
 
     render() {
         const { store$ } = this.props
@@ -14,7 +16,7 @@ export class Header extends React.Component {
                 <br />
                 <button onClick={markAllCompleted.bind(null, store$)}>Toggle all</button>
                 <br />
-                New item: <input value={this.state.inputText} onChange={this.handleInputChange} />
+                New item: <input value={this.inputText$.value()} onChange={this.handleInputChange} />
                 <button onClick={this.handleCreateTodo}>Add</button>
                 <br />
                 <hr />
@@ -23,11 +25,11 @@ export class Header extends React.Component {
     }
 
     handleInputChange = e => {
-        this.setState({ inputText: e.target.value })
+        this.inputText$.update(d => e.target.value)
     }
 
     handleCreateTodo = () => {
-        addTodo(this.props.store$, this.state.inputText)
-        this.setState({ inputText: '' })
+        addTodo(this.props.store$, this.inputText$.value())
+        this.inputText$.update(d => "")
     }
 }

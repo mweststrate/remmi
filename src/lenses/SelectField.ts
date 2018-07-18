@@ -19,7 +19,11 @@ export class SelectField extends Pipe {
 
     update(updater: ((draft: any) => void)) {
         this.base.update(draft => {
-            if (draft !== null && typeof draft === "object") updater(draft[this.key])
+            if (draft !== null && typeof draft === "object") {
+                const res = updater(draft[this.key])
+                if (res !== undefined)
+                    draft[this.key] = res // TODO: test, TODO: do we want to support this scenario?
+            }
             else fail(`Cannot update field ${this.key} of non-object value ${draft}`)
         })
     }

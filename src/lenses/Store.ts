@@ -23,9 +23,7 @@ export class Store<T = any> extends BaseLens<T> {
             this.state = produce(this.state, draft => {
                 // optimize
                 this.currentDraft = draft
-                const res = updater(draft)
-                if (res !== undefined) // TODO: or just ignore?
-                    fail("Updater function should not return anything")
+                return updater(draft)
             })
             if (this.state !== baseState) {
                 // skip default implementation
