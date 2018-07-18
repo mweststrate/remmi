@@ -18,10 +18,7 @@ export class Tracker {
     public track<T>(fn: () => T): T {
         const dependencies = new Set<Lens>()
         const prevListener = readListener
-        readListener = lens => {
-            console.trace("saw dep", lens)
-            dependencies.add(lens)
-        }
+        readListener = dependencies.add.bind(dependencies)
         try {
             return fn()
         } finally {
