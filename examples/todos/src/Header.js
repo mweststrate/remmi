@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { project } from 'remmi'
+import { autoRender } from 'remmi'
 import { unfinishedTodoCount$, markAllCompleted, addTodo } from './todoStore'
 
 export class Header extends React.Component {
@@ -8,9 +8,9 @@ export class Header extends React.Component {
 
     render() {
         const { store$ } = this.props
-        return unfinishedTodoCount$.render((unfinishedTodoCount) => (
+        return autoRender(() =>
             <div>
-                Tasks left: {unfinishedTodoCount}
+                Tasks left: {unfinishedTodoCount$.value()}
                 <br />
                 <button onClick={markAllCompleted.bind(null, store$)}>Toggle all</button>
                 <br />
@@ -19,7 +19,7 @@ export class Header extends React.Component {
                 <br />
                 <hr />
             </div>
-        ))
+        )
     }
 
     handleInputChange = e => {
