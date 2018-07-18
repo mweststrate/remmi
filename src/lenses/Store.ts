@@ -29,8 +29,9 @@ export class Store<T = any> extends BaseLens<T> {
             })
             if (this.state !== baseState) {
                 // skip default implementation
-                this.derivations.forEach(d => d.propagateChanged())
-                this.derivations.forEach(d => d.propagateReady(true))
+                const derivations = this.derivations.slice()
+                derivations.forEach(d => d.propagateChanged())
+                derivations.forEach(d => d.propagateReady(true))
             }
         } finally {
             this.currentDraft = undefined

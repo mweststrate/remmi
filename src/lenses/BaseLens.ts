@@ -32,6 +32,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     readonly subscriptions: Handler<T>[] = []
     readonly derivations: BaseLens[] = []
     readonly parents: BaseLens[] = []
+    changedDerivations?: BaseLens[]
 
     lensId = ++lensId
     dirty = 0
@@ -39,8 +40,10 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     state: T
 
     propagateChanged() {
-        if (++this.dirty === 1)
-            this.derivations.forEach(d => d.propagateChanged())
+        if (++this.dirty === 1) {
+            this.changedDerivations = this.derivations.slice()
+            this.changedDerivations.forEach(d => d.propagateChanged())
+        }
     }
 
     propagateReady(changed: boolean) {
@@ -52,11 +55,12 @@ export abstract class BaseLens<T = any> implements Lens<T> {
                 this.state = this.recompute()
                 if (this.state !== old) {
                     notify(this.subscriptions, this.state)
-                    this.derivations.forEach(d => d.propagateReady(true))
+                    this.changedDerivations!.forEach(d => d.propagateReady(true))
                     return
                 }
             }
-            this.derivations.forEach(d => d.propagateReady(false))
+            this.changedDerivations!.forEach(d => d.propagateReady(false))
+            this.changedDerivations = undefined
         }
         // if (this.dirty < 0) {
         //     fail("illegal state")
