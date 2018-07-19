@@ -88,7 +88,8 @@ TODO
 * [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)`
 * [ ] custom lens creating:
       * createLensType({ name: string, onCompute, onUpdate, onSuspend, chainable: true })
-* [ ] model api
+* [x] model api
 * [x] log lens
 * [ ] funny api?
 * [ ] separate export for react bindings
+* [ ] read only lens

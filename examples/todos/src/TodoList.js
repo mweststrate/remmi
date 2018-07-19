@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Header } from './Header'
-import { toggle } from './todoStore'
+import { TodoModel } from './todoStore'
 
 export class TodoList extends React.Component {
     render() {
@@ -12,7 +12,7 @@ export class TodoList extends React.Component {
                 <ul>
                     {store$.select("todos").renderAll(
                         (todo, todo$) =>
-                            <Todo todo$={todo$} />
+                            <Todo todo$={todo$.model(TodoModel)} />
                     )}
                 </ul>
             </div>
@@ -20,11 +20,9 @@ export class TodoList extends React.Component {
     }
 }
 
-const Todo = ({ todo$ }) => {
-    return todo$.render(todo =>
-            <li>
-                <input id={`input-${todo.id}`} type="checkbox" checked={todo.done} onClick={toggle.bind(null, todo$)} />
-                <label htmlFor={`input-${todo.id}`}>{todo.title}</label>
-            </li>
-    )
-}
+const Todo = ({ todo$ }) => todo$.render(todo =>
+        <li>
+            <input id={`input-${todo.id}`} type="checkbox" checked={todo.done} onClick={todo$.toggle} />
+            <label htmlFor={`input-${todo.id}`}>{todo.title}</label>
+        </li>
+)

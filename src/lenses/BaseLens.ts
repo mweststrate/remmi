@@ -17,7 +17,9 @@ import {
     defaultLog,
     Log,
     RenderLens,
-    RenderLenses
+    RenderLenses,
+    IModelDefinition,
+    Model
 } from "../internal"
 import { ILogger } from "./Log";
 import * as React from "react";
@@ -169,14 +171,22 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     keys() {
+        // TODO: from cache
         return this.select(keySelector).shallowEqual()
     }
 
     all() { // TODO: type
+        // TODO: from cache
         return new All(this)
     }
 
+    model(modelDefinition: IModelDefinition) { // TODO: type
+        // TODO: from cache
+        return new Model(this, modelDefinition)
+    }
+
     tap(logger: ILogger = defaultLog) {
+        // TODO: from cache
         return new Log(this, logger)
     }
 
@@ -203,10 +213,6 @@ function keySelector(value: any): (number | string)[] {
     if (value !== null && typeof value === "object")
         return Object.keys(value)
     return emptyArray
-}
-
-function keysToLenses(v: [keys: (number | string)[]): Lens<any>[] { // type
-    return keys.map(key => ) // optimize
 }
 
 function notify(subscriptions: Handler[], value: any) {

@@ -1,16 +1,16 @@
 import * as React from 'react'
 import { render } from 'react-dom'
 
-import { store$, unfinishedTodoCount$, addTodo } from './todoStore'
+import { store$ } from './todoStore'
 
 import { TodoList } from './TodoList'
 
 render(<TodoList store$={store$} />, document.getElementById('root'))
 
-addTodo(store$, 'Get Coffee')
-addTodo(store$, 'Write simpler code')
-addTodo(store$, 'Nice!')
+store$.addTodo('Get Coffee')
+store$.addTodo('Write simpler code')
+store$.addTodo('Nice!')
 
-unfinishedTodoCount$.subscribe(count => {
+store$.unfinishedTodoCount$.subscribe(count => {
     console.log(`${count} items left`)
 })
