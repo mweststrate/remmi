@@ -1,4 +1,4 @@
-import { BaseLens, Pipe } from "../internal";
+import { BaseLens, Pipe, isObject, isFn, isArray, validateUpdater, updaterNeedsReassignment, runUpdater } from "../internal";
 
 
 // Specialized version of select, that only selects a certain sub property
@@ -19,12 +19,12 @@ export class SelectField extends Pipe {
 
     update(updater: ((draft: any) => void)) {
         this.base.update(draft => {
-            if (draft !== null && typeof draft === "object") {
-                const res = updater(draft[this.key])
-                if (res !== undefined)
-                    draft[this.key] = res // TODO: test, TODO: do we want to support this scenario?
-            }
-            else fail(`Cannot update field ${this.key} of non-object value ${draft}`)
+            const baseState = draft[this.key]
+            validateUpdater(baseState, updater, true)
+            if (updaterNeedsReassignment(baseState, updater))
+                draft[this.key] = updater
+            else
+                runUpdater(baseState, updater)
         })
     }
 

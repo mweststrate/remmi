@@ -1,4 +1,4 @@
-import { Pipe, Lens, Selector, BaseLens } from "../internal";
+import { Pipe, Lens, Selector, BaseLens, validateUpdater, runUpdater } from "../internal";
 
 export class Select<B, R> extends Pipe implements Lens<R> {
     constructor(base: BaseLens<any>, public selector: Selector<B, R>) {
@@ -12,11 +12,9 @@ export class Select<B, R> extends Pipe implements Lens<R> {
 
     update(updater: ((draft: R) => void)) {
         this.base.update(draft => {
-            const res = updater(this.selector(draft))
-            // Note: deliberately no return is accepted from the updater,
-            // as that would not be combinable with selector
-            if (res !== undefined)
-                fail("Select lens .update function should not return anything")
+            const baseState = this.selector(draft)
+            validateUpdater(baseState, updater, false)
+            runUpdater(baseState, updater)
         })
     }
 

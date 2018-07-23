@@ -1,4 +1,4 @@
-import {Lens, Store, BaseLens, AutoRender} from "./internal"
+import {Lens, Store, BaseLens, AutoRender} from "../internal"
 import * as React from "react";
 
 let storeId = 0

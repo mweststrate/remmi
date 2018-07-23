@@ -1,6 +1,6 @@
 "use strict"
 
-import {createStore, Tracker, autorun} from "../src/remmi"
+import {createStore, autorun} from "../src/remmi"
 
 test("tracker 1", () => {
     const s = createStore({ x: 3, y: 4 })

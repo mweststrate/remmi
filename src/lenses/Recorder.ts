@@ -31,6 +31,7 @@ export class Recorder<T> extends Pipe implements Lens<T> {
     replay(target: Lens<T>) {
         target.update(draft => {
             this.recordedUpdates.forEach(u => {
+                // TODO: normalise u
                 u(draft)
             })
         })

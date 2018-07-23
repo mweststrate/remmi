@@ -27,3 +27,15 @@ export function once(fn: () => void): () => void {
         }
     }
 }
+
+export function isFn(thing: any): thing is Function {
+    return typeof thing === "function"
+}
+
+export function isArray(thing: any): thing is any[] {
+    return Array.isArray(thing)
+}
+
+export function isObject(thing: any) {
+    return typeof thing === "object" && thing !== null && (thing.constructor === Object || thing.constructor === undefined)
+}

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Lens, Tracker, Disposer } from "./internal";
+import { Lens, Tracker, Disposer } from "../internal";
 
 export class AutoRender extends React.PureComponent {
     tracker?: Tracker

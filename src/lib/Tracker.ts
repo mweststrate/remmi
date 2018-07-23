@@ -1,4 +1,4 @@
-import { merge, Lens, Merge, shallowEqual, noop, Disposer } from "./internal";
+import { merge, Lens, Merge, shallowEqual, noop, Disposer } from "../internal";
 
 // TODO: use a global
 let readListener: undefined | ((lens: Lens) => void)

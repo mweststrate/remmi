@@ -1,5 +1,3 @@
-"use strict"
-
 import {createStore, merge} from "../src/remmi"
 
 test("read & update through lens", () => {
@@ -182,6 +180,7 @@ test("combine lenses - fields", () => {
         store.users.piet.age = 42
     })
 
+    debugger
     friend.update(f => {
         f.age = 43
     })
@@ -311,7 +310,7 @@ test("cache lenses", () => {
 
     const x2 = s.select("x")
     expect(x2).toBe(x)
-    debugger
+
     const y2 = x2.select(getY)
     expect(y2).toBe(y)
 
@@ -416,16 +415,20 @@ test("logging", () => {
     const stub = jest.fn()
     const log = y.tap(stub)
 
-    s.update(d => { d.x.y = 2 }) // no update
+    s.update(d => {
+        d.x.y = 2
+    }) // no update
     expect(stub.mock.calls).toMatchSnapshot()
 
     log.value()
     log.value() // updated twice
     expect(stub.mock.calls).toMatchSnapshot()
 
-    const d = log.subscribe(() => { })
+    const d = log.subscribe(() => {})
 
-    s.update(d => { d.x.y = 3 }) // immediate update
+    s.update(d => {
+        d.x.y = 3
+    }) // immediate update
     expect(stub.mock.calls).toMatchSnapshot()
     d()
 })
