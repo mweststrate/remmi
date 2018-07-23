@@ -26,3 +26,4 @@ export class Select<B, R> extends Pipe implements Lens<R> {
         return `${this.base.describe()}.{${this.selector.toString()}}` // TODO: improve
     }
 }
+

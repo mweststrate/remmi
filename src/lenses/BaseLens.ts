@@ -121,6 +121,12 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         }
     }
 
+    build(...things: any[]): any {
+        return things.reduce((acc, factory) => {
+            return factory(acc)
+        }, this)
+    }
+
     toString() {
         return `Lens[${this.describe()}]`
     }
@@ -136,22 +142,6 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     abstract getCacheKey(): any;
 
     abstract describe(): string
-
-    // TODO: type those and add to interface
-    select<R = any>(selector: Selector<T, R>|string|number): Lens<R> {
-        if (typeof selector === "number")
-            selector = ""  +selector // normalize to string
-        // if we created a lens for the very same selector before, find it!
-        let s: BaseLens | undefined = this.selectorCache.get(selector)
-        if (s) return s
-        if (typeof selector === "string") {
-            s = new SelectField(this, selector)
-        } else {
-            s = new Select<T, R>(this, selector)
-        }
-        this.selectorCache.set(selector, s)
-        return s
-    }
 
     readOnly() {
         return new ReadOnly(this)

@@ -1,4 +1,4 @@
-import {createStore, merge} from "../src/remmi"
+import {createStore, merge, select} from "../src/remmi"
 
 test("read & update through lens", () => {
     const data = {
@@ -10,7 +10,7 @@ test("read & update through lens", () => {
 
     const store = createStore(data)
     expect(store.value()).toBe(data)
-    const lens = store.select(s => s.loc)
+    const lens = store.build(select(s => s.loc))
 
     expect(lens.value().x).toBe(3)
     const base = lens.value()
@@ -34,7 +34,7 @@ test("read & update through subscription", () => {
 
     const values: any[] = []
     const store = createStore(data)
-    const lens = store.select(s => s.loc)
+    const lens = store.build(select(s => s.loc))
     const d = lens.subscribe(next => {
         values.push(next)
     })
@@ -67,7 +67,7 @@ test("read & update through subscription", () => {
     expect(values).toEqual([{x: 4, y: 5}, {x: 4, y: 6}, {a: 2}, null, {b: 3}])
 })
 
-test("combine lenses", () => {
+test.only("combine lenses", () => {
     const data = {
         users: {
             michel: {
@@ -85,14 +85,14 @@ test("combine lenses", () => {
 
     const ages = []
     const store = createStore(data)
-    const michel = store.select(s => s.users.michel)
+    const michel = store.build(select(s => s.users.michel))
     const merger = merge(store, michel)
     // const friend = merger.select(([store, michel]) => store.users[michel.friend])
     const friend = merge(
-        store.select(s => s.users),
-        michel.select(m => m.friend)
-    ).select(([users, friend]) => users[friend])
-    const age = friend.select(f => f.age)
+        store.build(select(s => s.users)),
+        michel.build(select(m => m.friend))
+    ).build(select(([users, friend]) => users[friend]))
+    const age = friend.build(select(f => f.age))
 
     expect(friend.value().age).toBe(10)
     age.subscribe(age => ages.push(age))
