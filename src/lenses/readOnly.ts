@@ -1,6 +1,6 @@
-import { fail, Pipe } from "../internal"
+import { fail, Pipe, asBuilder, Lens } from "../internal"
 
-export class ReadOnly extends Pipe {
+class ReadOnly extends Pipe {
     update(_updater: any) {
         fail("Read only lens")
     }
@@ -13,3 +13,9 @@ export class ReadOnly extends Pipe {
         return this.base.describe() + ".readOnly()"
     }
 }
+
+export function readOnly<T>(lens: Lens<T>): Lens<T> {
+    return new ReadOnly(lens)
+}
+
+asBuilder(readOnly)

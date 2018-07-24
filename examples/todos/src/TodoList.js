@@ -10,19 +10,19 @@ export class TodoList extends React.Component {
             <div>
                 <Header store$={store$} />
                 <ul>
-                    {store$.select("todos").renderAll(
+                    {store$.view("todos").view(renderAll(
                         (todo, todo$) =>
                             <Todo todo$={todo$.model(TodoModel)} />
-                    )}
+                    ))}
                 </ul>
             </div>
         )
     }
 }
 
-const Todo = ({ todo$ }) => todo$.render(todo =>
+const Todo = ({ todo$ }) => todo$.view(render(todo =>
         <li>
             <input id={`input-${todo.id}`} type="checkbox" checked={todo.done} onClick={todo$.toggle} />
             <label htmlFor={`input-${todo.id}`}>{todo.title}</label>
         </li>
-)
+))

@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Lens, Tracker, Disposer } from "../internal";
+import { Lens, Tracker, Disposer, Builder, asBuilder, all } from "../internal";
 
-export class AutoRender extends React.PureComponent {
+class AutoRender extends React.PureComponent {
     tracker?: Tracker
 
     render() {
@@ -19,7 +19,7 @@ export class AutoRender extends React.PureComponent {
     }
 }
 
-export class RenderLens<T> extends React.PureComponent<{ lens: Lens<T>, renderer: (value: T, lens: Lens<T>) => React.ReactNode }> {
+class RenderLens<T> extends React.PureComponent<{ lens: Lens<T>, renderer: (value: T, lens: Lens<T>) => React.ReactNode }> {
     subscription?: Disposer
 
     onChange = () => {
@@ -34,7 +34,7 @@ export class RenderLens<T> extends React.PureComponent<{ lens: Lens<T>, renderer
         this.subscription = this.props.lens.subscribe(this.onChange)
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps: any) {
         // lens changed
         if (prevProps.lens !== this.props.lens) {
             const prevSub = this.subscription!
@@ -48,18 +48,46 @@ export class RenderLens<T> extends React.PureComponent<{ lens: Lens<T>, renderer
     }
 }
 
-export class RenderLenses extends React.PureComponent {
-    itemRenderer = (lens) => {
-        return <RenderLens key={lens.key} lens={lens} renderer={this.props.renderer} />
+// TODO: fix all the typings! (or remove)
+class RenderLenses<T> extends React.PureComponent<{ lens: Lens<T[]>, renderer: (value: T, lens: Lens<T>) => React.ReactNode }> {
+    itemRenderer = (lens: Lens<T>) => {
+        return <RenderLens key={(lens as any).key} lens={lens} renderer={this.props.renderer} />
     }
 
-    allRenderer = (lenses) => {
+    allRenderer = (lenses: Lens<T>[]) => {
         return <React.Fragment>{lenses.map(this.itemRenderer)}</React.Fragment>
     }
 
     render() {
         return (
-            <RenderLens lens={this.props.lens.all()} renderer={this.allRenderer}/>
+            <RenderLens lens={this.props.lens.view(all)} renderer={this.allRenderer as any}/>
         )
     }
+}
+
+export function autoRender(fn: () => React.ReactNode) {
+    return React.createElement(AutoRender, {}, fn)
+}
+
+export function render<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<T>, React.ReactElement<any>>
+export function render(renderer: (value: any) => React.ReactNode): any {
+    // TODO: should accept oroginal lens as argument
+    return asBuilder(function (lens: Lens) {
+        return React.createElement(RenderLens, {
+            lens,
+            renderer
+        })
+    })
+}
+
+export function renderAll<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<T[]>, React.ReactElement<any>>
+export function renderAll<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<{[key: string]: T}>, React.ReactElement<any>>
+export function renderAll(renderer: (value: any) => React.ReactNode): any {
+    // TODO: should accept key as argument?
+    return asBuilder(function (lens: Lens) {
+        return React.createElement(RenderLenses, {
+            lens,
+            renderer
+        })
+    })
 }

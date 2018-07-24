@@ -1,6 +1,6 @@
 "use strict"
 
-import {createStore, merge} from "../src/remmi"
+import {createStore, all} from "../src/remmi"
 
 test("all 1", () => {
     const s = createStore({
@@ -8,7 +8,7 @@ test("all 1", () => {
         b: { x: 4 }
     })
 
-    const a = s.all()
+    const a = s.view(all)
 
     const v = a.value()
     expect(v.length).toBe(2)
@@ -32,7 +32,7 @@ test("all 2", () => {
         { x: 4 }
     ])
 
-    const a = s.all()
+    const a = s.view(all)
 
     const v = a.value()
     expect(v.length).toBe(2)

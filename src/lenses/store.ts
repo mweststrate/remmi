@@ -1,8 +1,18 @@
 import produce from "immer"
 
-import { fail, noop, BaseLens, isFn,  validateUpdater, runUpdater, updaterNeedsReassignment } from "../internal"
+import {
+    fail,
+    noop,
+    BaseLens,
+    isFn,
+    validateUpdater,
+    runUpdater,
+    updaterNeedsReassignment,
+    Lens
+} from "../internal"
 
- export class Store<T = any> extends BaseLens<T> {
+class Store<T> extends BaseLens<T> {
+    state: T
     private currentDraft?: T
     private isRunningUpdate = false
 
@@ -12,14 +22,13 @@ import { fail, noop, BaseLens, isFn,  validateUpdater, runUpdater, updaterNeedsR
         this.subscribe(noop) // stores are always kept alive
     }
 
-    update(updater: ((draft: T) => T | void)) {
+    update(updater: any) {
         if (this.isRunningUpdate) {
             validateUpdater(this.currentDraft, updater, false)
             // update call from an update call (for example caused by merge)
             // just reuse the current draft
-            if (!isFn(updater))
-                fail("Unimplemented feature")
-            updater(this.currentDraft)
+            if (!isFn(updater)) fail("Unimplemented feature")
+            else updater(this.currentDraft!)
             return
         }
         try {
@@ -27,15 +36,12 @@ import { fail, noop, BaseLens, isFn,  validateUpdater, runUpdater, updaterNeedsR
             validateUpdater(baseState, updater, true)
             if (updaterNeedsReassignment(baseState, updater))
                 this.state = updater
-            else
-                this.state = produce(this.state, draft => {
+            else {
+                this.state = produce(this.state, (draft: T) => {
                     this.isRunningUpdate = true
                     this.currentDraft = draft
                     runUpdater(draft, updater)
                 })
-            } finally {
-                this.currentDraft = undefined
-                this.isRunningUpdate = false
             }
             if (this.state !== baseState) {
                 // skip default implementation
@@ -43,10 +49,14 @@ import { fail, noop, BaseLens, isFn,  validateUpdater, runUpdater, updaterNeedsR
                 derivations.forEach(d => d.propagateChanged())
                 derivations.forEach(d => d.propagateReady(true))
             }
+        } finally {
+            this.currentDraft = undefined
+            this.isRunningUpdate = false
+        }
     }
 
     recompute(): T {
-        return this.state
+        return this.state!
     }
 
     resume() {
@@ -64,4 +74,14 @@ import { fail, noop, BaseLens, isFn,  validateUpdater, runUpdater, updaterNeedsR
     describe() {
         return this.name
     }
+}
+
+let storeId = 0
+
+// TODO: rename to store
+export function createStore<T>(
+    initialValue: T,
+    name: string = "Store" + ++storeId
+): Lens<T> {
+    return new Store(initialValue, name)
 }

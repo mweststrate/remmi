@@ -42,8 +42,8 @@ test("store update overloads", () => {
 })
 
 test("select field update overloads", () => {
-    const a = createStore({ x: "3" })
-    const s = a.select("x")
+    const a = createStore<any>({ x: "3" })
+    const s = a.view("x")
 
     s.update(4)
     expect(s.value()).toBe(4)
@@ -84,8 +84,8 @@ test("select field update overloads", () => {
 
 
 test("select fn update overloads", () => {
-    const a = createStore({ x: "3" })
-    const s = a.select(s => s.x)
+    const a = createStore<any>({ x: "3" })
+    const s = a.view(s => s.x)
 
     expect(() => {
         s.update(4)

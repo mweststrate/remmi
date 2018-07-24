@@ -1,28 +1,12 @@
 import {
     fail,
-    Select,
-    SelectField,
-    ReadOnly,
-    Recorder,
-    createStore,
-    All,
     Lens,
     Handler,
     Disposer,
-    Selector,
     notifyRead,
     once,
-    ShallowEqual,
-    emptyArray,
-    defaultLog,
-    Log,
-    RenderLens,
-    RenderLenses,
-    IModelDefinition,
-    Model
+    select
 } from "../internal"
-import { ILogger } from "./Log";
-import * as React from "react";
 
 let lensId = 0;
 
@@ -39,7 +23,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     lensId = ++lensId
     dirty = 0
     changedParents = 0
-    state: T
+    state?: T
 
     propagateChanged() {
         if (++this.dirty === 1) {
@@ -64,9 +48,6 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             this.changedDerivations!.forEach(d => d.propagateReady(false))
             this.changedDerivations = undefined
         }
-        // if (this.dirty < 0) {
-        //     fail("illegal state")
-        // }
     }
 
     protected get hot() {
@@ -74,7 +55,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     value() {
-        const res = this.hot ? this.state : this.recompute()
+        const res = this.hot ? this.state! : this.recompute()
         notifyRead(this)
         return res
     }
@@ -121,99 +102,36 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         }
     }
 
+    view(...things: any[]): any {
+        // TODO: put read / write from cache here?
+        return things.reduce((acc, factory) => {
+            if (factory.isBuilder === true)
+                return factory(acc)
+            // TOOO: better split out?
+            if (typeof factory === "string" || typeof factory === "number" || typeof factory === "function")
+                return select(factory)(acc) // optimize, just the select creator function directly
+            fail("Not a valid view or view factory: " + factory)
+        }, this)
+    }
+
     toString() {
         return `Lens[${this.describe()}]`
     }
 
     abstract recompute(): T;
 
-    abstract resume();
+    abstract resume(): void;
 
-    abstract suspend();
+    abstract suspend(): void;
 
     abstract update(producer: ((draft: T) => void)): void
 
+    // TODO: should be static
     abstract getCacheKey(): any;
 
     abstract describe(): string
-
-    // TODO: type those and add to interface
-    select<R = any>(selector: Selector<T, R>|string|number): Lens<R> {
-        if (typeof selector === "number")
-            selector = ""  +selector // normalize to string
-        // if we created a lens for the very same selector before, find it!
-        let s: BaseLens | undefined = this.selectorCache.get(selector)
-        if (s) return s
-        if (typeof selector === "string") {
-            s = new SelectField(this, selector)
-        } else {
-            s = new Select<T, R>(this, selector)
-        }
-        this.selectorCache.set(selector, s)
-        return s
-    }
-
-    readOnly() {
-        return new ReadOnly(this)
-    }
-
-    shallowEqual() {
-        return new ShallowEqual(this)
-    }
-
-    fork(recordActions: true): Recorder<T>
-    fork(recordActions?: boolean): Lens<T>
-    fork(recordActions = false) {
-        const fork = createStore(this.value())
-        if (recordActions)
-            return new Recorder(fork)
-        return fork
-    }
-
-    keys() {
-        // TODO: from cache
-        return this.select(keySelector).shallowEqual()
-    }
-
-    all() { // TODO: type
-        // TODO: from cache
-        return new All(this)
-    }
-
-    model(modelDefinition: IModelDefinition) { // TODO: type
-        // TODO: from cache
-        return new Model(this, modelDefinition)
-    }
-
-    tap(logger: ILogger = defaultLog) {
-        // TODO: from cache
-        return new Log(this, logger)
-    }
-
-    // TODO: should accept oroginal lens as argument
-    render(renderer: (value: T) => React.ReactNode): React.ReactElement<any> {
-        return React.createElement(RenderLens, {
-            lens: this,
-            renderer
-        })
-    }
-
-    // TODO: should accept key as argument?
-    renderAll(renderer: (value: T) => React.ReactNode) {
-        return React.createElement(RenderLenses, {
-            lens: this,
-            renderer
-        })
-    )
 }
 
-function keySelector(value: any): (number | string)[] {
-    if (Array.isArray(value))
-        return value.map((_v, idx) => idx) // optimize!
-    if (value !== null && typeof value === "object")
-        return Object.keys(value)
-    return emptyArray
-}
 
 function notify(subscriptions: Handler[], value: any) {
     subscriptions.forEach(f => f(value)) // optimize
@@ -225,4 +143,8 @@ function subscribe(subscriptions: Handler[], handler: Handler): Disposer {
         const idx = subscriptions.indexOf(handler)
         if (idx !== -1) subscriptions.splice(idx, 1)
     }
+}
+
+export function isLens(thing: any): thing is Lens {
+    return thing instanceof BaseLens
 }

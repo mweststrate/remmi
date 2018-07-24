@@ -5,7 +5,7 @@ import {createStore} from "../src/remmi"
 function TodoModel(lens) {
     return {
         inc() {
-            lens.update({ x: x.get() + 1 })
+            lens.update({ x: lens.value().x + 1 })
         }
     }
 }
