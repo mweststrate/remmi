@@ -1,4 +1,4 @@
-import {Lens, Store, BaseLens, AutoRender, Selector, SelectField, Select, Builder} from "../internal"
+import {Lens, Store, BaseLens, AutoRender, Selector, SelectField, Select, Builder, asBuilder} from "../internal"
 import * as React from "react";
 
 let storeId = 0
@@ -19,7 +19,7 @@ export function autoRender(fn: () => React.ReactNode) {
 export function select<T, R>(selector: Selector<T, R>): Builder<T, Lens<R>>
 export function select<T, K extends keyof T>(selector: K): Builder<T, Lens<T[K]>>
 export function select(selector: any): any {
-    return function (lens: Lens): Lens {
+    return asBuilder(function (lens: Lens): Lens {
         if (typeof selector === "number")
             selector = ""  +selector // normalize to string
         // if we created a lens for the very same selector before, find it!
@@ -33,4 +33,4 @@ export function select(selector: any): any {
         lens.selectorCache.set(selector, s)
         return s
     }
-}
+})

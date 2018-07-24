@@ -19,7 +19,8 @@ import {
     RenderLens,
     RenderLenses,
     IModelDefinition,
-    Model
+    Model,
+    select
 } from "../internal"
 import { ILogger } from "./Log";
 import * as React from "react";
@@ -121,9 +122,15 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         }
     }
 
-    build(...things: any[]): any {
+    view(...things: any[]): any {
+        // TODO: put read / write from cache here?
         return things.reduce((acc, factory) => {
-            return factory(acc)
+            if (factory.isBuilder === true)
+                return factory(acc)
+            // TOOO: better split out?
+            if (typeof factory === "string" || typeof factory === "number" || typeof factory === "function")
+                return select(factory)(acc) // optimize, just the select creator function directly
+            fail("Not a valid view or view factory: " + factory)
         }, this)
     }
 

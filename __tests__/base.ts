@@ -10,7 +10,7 @@ test("read & update through lens", () => {
 
     const store = createStore(data)
     expect(store.value()).toBe(data)
-    const lens = store.build(select(s => s.loc))
+    const lens = store.view(s => s.loc)
 
     expect(lens.value().x).toBe(3)
     const base = lens.value()
@@ -34,7 +34,7 @@ test("read & update through subscription", () => {
 
     const values: any[] = []
     const store = createStore(data)
-    const lens = store.build(select(s => s.loc))
+    const lens = store.view(select(s => s.loc))
     const d = lens.subscribe(next => {
         values.push(next)
     })
@@ -84,42 +84,44 @@ test.only("combine lenses", () => {
     }
 
     const ages = []
-    const store = createStore(data)
-    const michel = store.build(select(s => s.users.michel))
-    const merger = merge(store, michel)
-    // const friend = merger.select(([store, michel]) => store.users[michel.friend])
-    const friend = merge(
-        store.build(select(s => s.users)),
-        michel.build(select(m => m.friend))
-    ).build(select(([users, friend]) => users[friend]))
-    const age = friend.build(select(f => f.age))
+    const store$ = createStore(data)
+    const michel$ = store$.view(s => s.users.michel)
+    const michel2$ = store$.view(select(s => s.users.michel))
 
-    expect(friend.value().age).toBe(10)
+    const merger$ = merge(store$, michel$)
+    // const friend = merger.select(([store, michel]) => store.users[michel.friend])
+    const FRIEND = merge(
+        store$.view(select(s => s.users)),
+        michel$.view(m => m.friend)
+    ).view(select(([users, friend]) => users[friend]))
+    const age = FRIEND.view(select(f => f.age))
+
+    expect(FRIEND.value().age).toBe(10)
     age.subscribe(age => ages.push(age))
 
-    store.update(s => {
+    store$.update(s => {
         s.users.jan.age = 12
     })
-    store.update(s => {
+    store$.update(s => {
         s.users.jan.age = 13
     })
-    michel.update(m => {
+    michel$.update(m => {
         m.friend = "piet"
     })
 
-    expect(friend.value()).toBe(store.value().users.piet)
+    expect(FRIEND.value()).toBe(store$.value().users.piet)
 
-    merger.update(([store, michel]) => {
+    merger$.update(([store, michel]) => {
         store.users.piet.age = 42
     })
 
-    friend.update(f => {
+    FRIEND.update(f => {
         f.age = 43
     })
 
     expect(ages).toEqual([12, 13, 20, 42, 43])
 
-    expect(store.value()).toEqual({
+    expect(store$.value()).toEqual({
         users: {
             michel: {
                 name: "michel",
@@ -153,7 +155,7 @@ test("combine lenses - fields", () => {
 
     const ages = []
     const store = createStore(data)
-    const michel = store.select("users").select("michel") // strongly typed!
+    const michel = store.view(select("users"), select("michel")) // strongly typed!
     const merger = merge(store, michel)
     const friend = merge(store.select("users"), michel.select("friend")).select(
         ([users, friend]) => users[friend]
