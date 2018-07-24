@@ -24,11 +24,11 @@ export class Header extends React.Component {
     }
 
     handleInputChange = e => {
-        this.inputText$.update(d => e.target.value)
+        this.inputText$.update(e.target.value)
     }
 
     handleCreateTodo = () => {
         this.props.store$.addTodo(this.inputText$.value())
-        this.inputText$.update(d => "")
+        this.inputText$.update("")
     }
 }

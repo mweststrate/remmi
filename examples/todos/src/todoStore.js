@@ -1,9 +1,9 @@
-import { createStore } from 'remmi'
+import { createStore, model } from 'remmi'
 
 function TodoStore(lens) {
     return {
         get unfinishedTodoCount$() {
-            return lens.select(s => s.todos.filter(todo => !todo.done).length)
+            return lens.view(s => s.todos.filter(todo => !todo.done).length)
         },
         addTodo(title) {
             lens.update(s => {
@@ -32,4 +32,4 @@ export function TodoModel(lens) {
 
 export const store$ = createStore({
     todos: []
-}).model(TodoStore)
+}).view(model(TodoStore))
