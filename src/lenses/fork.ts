@@ -36,7 +36,7 @@ class Recorder extends Pipe implements IRecorder {
      * the target will be unmodified
      */
     replay(target: Lens) {
-        target.update(draft => {
+        target.update((draft: any) => {
             this.recordedUpdates.forEach(u => {
                 // TODO: fix and normalise u
                 (u as any)(draft)
@@ -53,7 +53,7 @@ class Recorder extends Pipe implements IRecorder {
     }
 }
 
-
+// TODO: change fork to be not a builder, but an api like merge
 export function fork<T>(recordActions: true): Builder<T, Lens<T> & IRecorder<T>>
 export function fork<T>(recordActions?: false): Builder<T, Lens<T>>
 export function fork(recordActions = false) {

@@ -1,4 +1,4 @@
-import {createStore, merge, select, readOnly} from "../src/remmi"
+import {createStore, merge, select, readOnly, fork, tap} from "../src/remmi"
 
 test("read & update through lens", () => {
     const data = {
@@ -33,7 +33,7 @@ test("read & update through subscription", () => {
     }
 
     const values: any[] = []
-    const store = createStore(data)
+    const store = createStore<any>(data)
     const lens = store.view(select(s => s.loc))
     const d = lens.subscribe(next => {
         values.push(next)
@@ -157,10 +157,10 @@ test("combine lenses - fields", () => {
     const store = createStore(data)
     const michel = store.view(select("users"), select("michel")) // strongly typed!
     const merger = merge(store, michel)
-    const friend = merge(store.select("users"), michel.select("friend")).select(
+    const friend = merge(store.view("users"), michel.view("friend")).view(
         ([users, friend]) => users[friend]
     )
-    const age = friend.select("age")
+    const age = friend.view("age")
 
     expect(friend.value().age).toBe(10)
     age.subscribe(age => ages.push(age))
@@ -209,7 +209,7 @@ test("future ref", () => {
     const s = createStore({} as any)
 
     const values: any = []
-    const michel = s.select(s => s.users).select(users => users && users.michel)
+    const michel = s.view(s => s.users).view(users => users && users.michel)
     michel.subscribe(v => values.push(v))
 
     s.update(s => {
@@ -225,7 +225,7 @@ test("future ref", () => {
 
 test("no glitches", () => {
     const x = createStore({x: 3, y: 4})
-    const sum = merge(x.select(x => x.x), x.select(y => y.y)).select(
+    const sum = merge(x.view(x => x.x), x.view(y => y.y)).view(
         ([x, y]) => x + y
     )
     const values = []
@@ -249,15 +249,15 @@ test("cleanup", () => {
             x.a.b.c += 1
         })
 
-    const a = x.select(x => {
+    const a = x.view(x => {
         events.push("select a")
         return x.a
     })
-    const b = a.select(x => {
+    const b = a.view(x => {
         events.push("select b")
         return x.b
     })
-    const c = b.select(x => {
+    const c = b.view(x => {
         events.push("select c")
         return x.c
     })
@@ -289,7 +289,7 @@ test("cleanup", () => {
         "sub c: 6"
     ])
 
-    x.update(x => {
+    x.update((x: any) => {
         x.y = 4
     })
     expect(events.splice(0)).toEqual(["select a"])
@@ -305,19 +305,19 @@ test("cleanup", () => {
 
 test("cache lenses", () => {
     const s = createStore({x: {y: {z: 4}}})
-    const x = s.select("x")
+    const x = s.view("x")
     const getY = x => x.y
-    const y = x.select(getY)
+    const y = x.view(getY)
     const d = y.subscribe(() => {})
 
-    const x2 = s.select("x")
+    const x2 = s.view("x")
     expect(x2).toBe(x)
 
-    const y2 = x2.select(getY)
+    const y2 = x2.view(getY)
     expect(y2).toBe(y)
 
     d()
-    const x3 = s.select("x")
+    const x3 = s.view("x")
     expect(x3).not.toBe(x) // ideally it would be the same, but we cannot implement that without leaking memory
 })
 
@@ -338,7 +338,7 @@ test("async updates work fine", async () => {
 
 test("forking", () => {
     const s = createStore({x: 1})
-    const s2 = s.fork()
+    const s2 = s.view(fork())
     s.update(d => {
         d.x++
     })
@@ -353,7 +353,7 @@ test("forking", () => {
 
 test("forking - replay", () => {
     const s = createStore({x: 1})
-    const s2 = s.fork(true)
+    const s2 = s.view(fork(true))
     s.update(d => {
         d.x++
     })
@@ -370,11 +370,11 @@ test("forking - replay", () => {
 
 test("forking - replay - erroring", () => {
     const s = createStore({x: {y: 1}})
-    const s2 = s.fork(true)
+    const s2 = s.view(fork(true))
     s.update(d => {
         delete d.x
     })
-    s2.update(d => {
+    s2.update((d: any) => {
         d.z = 2
     })
     s2.update(d => {
@@ -391,7 +391,7 @@ test("forking - replay - erroring", () => {
 
 test("cache merge", () => {
     const s = createStore({x: {y: 1}})
-    const x = s.select("x")
+    const x = s.view("x")
     const m1 = merge(s, x)
     let m2 = merge(s, x)
     expect(m2).not.toBe(m1) // not cached
@@ -403,7 +403,7 @@ test("cache merge", () => {
     m2 = merge(x, s)
     expect(m2).not.toBe(m1) // order matters
 
-    m2 = merge(s, s.select("x"))
+    m2 = merge(s, s.view("x"))
     expect(m2).toBe(m1) // from cache
 
     d()
@@ -413,9 +413,9 @@ test("cache merge", () => {
 
 test("logging", () => {
     const s = createStore({x: {y: 1}})
-    const y = s.select("x").select("y")
+    const y = s.view("x", "y")
     const stub = jest.fn()
-    const log = y.tap(stub)
+    const log = y.view(tap(stub))
 
     s.update(d => {
         d.x.y = 2

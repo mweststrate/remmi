@@ -27,8 +27,8 @@ class All extends Pipe {
     }
 }
 
-export function all<X, T extends X[]>(lens: Lens<T>): Lens<Lens<X>[]>;
-export function all<X, T extends {[key: string]: X}>(lens: Lens<T>): Lens<Lens<X>[]>;
+export function all<X, T extends X[]>(lens: Lens<T>): Lens<(Lens<X> & { key: number })[]>;
+export function all<X, T extends {[key: string]: X}>(lens: Lens<T>): Lens<(Lens<X> & { key: string })[]>;
 export function all(lens: Lens): Lens {
     return new All(lens)
 }

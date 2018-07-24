@@ -1,7 +1,7 @@
 export type Disposer = () => void
 export type Handler<T = any> = (value: T) => void
 export type Selector<T = any, X = any> = T extends Lens ? never : (base: T) => X
-export type Updater<T = any> = ((draft: T) => void) | Partial<T>
+export type Updater<T = any> = ((draft: T) => void) | Partial<T> | T
 
 // To type things like `select()`
 export type Builder<T, R> =
