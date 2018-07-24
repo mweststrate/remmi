@@ -90,6 +90,13 @@ level 10: testing: stubbing lenses etc
 
 ---
 
+Convenience api's
+* directly pass values to update
+* `select` builder or not
+* multiple builders
+
+---
+
 Recipes
 
 - simple example

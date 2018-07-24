@@ -146,6 +146,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     abstract update(producer: ((draft: T) => void)): void
 
+    // TODO: should be static
     abstract getCacheKey(): any;
 
     abstract describe(): string
