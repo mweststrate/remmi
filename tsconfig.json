@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es5",
     "module": "ES2015",
+    "moduleResolution": "node",
     "lib": ["es2015"], // TODO: or ES5?
     "declaration": true,
     "sourceMap": true,

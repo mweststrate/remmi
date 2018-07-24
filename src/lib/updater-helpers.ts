@@ -1,4 +1,4 @@
-import { isFn, isObject, fail } from "../internal"
+import { isFn, isObject, fail, Updater } from "../internal"
 
 export function validateUpdater(base: any, updater: any, canReassign: boolean) {
     if (isFn(updater))
@@ -19,7 +19,7 @@ export function runUpdater(base: any, updater: any) {
     }
 }
 
-export function updaterNeedsReassignment(base: any, updater: any) {
+export function updaterNeedsReassignment(base: any, updater: any): boolean {
     if (isObject(base) && isObject(updater))
         return false // can use assign
     if (isFn(updater))

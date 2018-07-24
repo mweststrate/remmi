@@ -9,7 +9,7 @@ export function fail(msg: string): never {
     throw new Error("[remmi] " + msg)
 }
 
-export function shallowEqual(ar1: any, ar2: any) {
+export function _shallowEqual(ar1: any, ar2: any) {
     // TODO: also for objects
     if (ar1 === ar2) return true
     if (!ar1 || !ar2) return false

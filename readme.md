@@ -2,6 +2,8 @@
 
 _Go away! Nothing to see here yet_
 
+_Materialized views for immutable data_
+
 Remmi is a fresh take on data flow and state management by very explitly deliniating the concepts of [values and identities](https://www.youtube.com/watch?v=Gyp2QDr7YkU).
 Basically it is a weird mix of the concepts of lenses, streams and goodies from mobx like glitch free derivation graphs (and optionally transparent tracking).
 
@@ -138,3 +140,7 @@ TODO
 * [ ] patch subscriptoin
 * [ ] reflection: show lenses base tree; patches
 * [ ] optimistic lens?
+* [ ] from resource (at root or in tree) example
+* [ ] example promise model
+* [ ] merge toStream / fromStream support?
+* [ ] fix all the tostrings

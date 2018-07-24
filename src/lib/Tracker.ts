@@ -1,4 +1,4 @@
-import { merge, Lens, Merge, shallowEqual, noop, Disposer } from "../internal";
+import { merge, Lens, Merge, _shallowEqual, noop, Disposer } from "../internal";
 
 // TODO: use a global
 let readListener: undefined | ((lens: Lens) => void)
@@ -23,7 +23,7 @@ export class Tracker {
             return fn()
         } finally {
             const newDeps = Array.from(dependencies)
-            if (!shallowEqual(newDeps, this.merge.bases)) { // TODO: still needed with merge caching?
+            if (!_shallowEqual(newDeps, this.merge.bases)) { // TODO: still needed with merge caching?
 
             //     // don't create merge if only one dep
             const nextMerge = newDeps.length === 1 ? newDeps[0] : merge.apply(undefined, newDeps as any) // TODO: fix typings

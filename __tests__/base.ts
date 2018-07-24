@@ -1,4 +1,4 @@
-import {createStore, merge, select} from "../src/remmi"
+import {createStore, merge, select, readOnly} from "../src/remmi"
 
 test("read & update through lens", () => {
     const data = {
@@ -67,7 +67,7 @@ test("read & update through subscription", () => {
     expect(values).toEqual([{x: 4, y: 5}, {x: 4, y: 6}, {a: 2}, null, {b: 3}])
 })
 
-test.only("combine lenses", () => {
+test("combine lenses", () => {
     const data = {
         users: {
             michel: {
@@ -86,18 +86,18 @@ test.only("combine lenses", () => {
     const ages = []
     const store$ = createStore(data)
     const michel$ = store$.view(s => s.users.michel)
-    const michel2$ = store$.view(select(s => s.users.michel))
+    // const michel2$ = store$.view(select(s => s.users.michel))
+    // const michelRo$ = store$.view(readOnly)
 
     const merger$ = merge(store$, michel$)
-    // const friend = merger.select(([store, michel]) => store.users[michel.friend])
-    const FRIEND = merge(
-        store$.view(select(s => s.users)),
+    const friend$ = merge(
+        store$.view(select(s => s.users)), // obviously selec tis not needed here
         michel$.view(m => m.friend)
     ).view(select(([users, friend]) => users[friend]))
-    const age = FRIEND.view(select(f => f.age))
+    const age$ = friend$.view(select(f => f.age))
 
-    expect(FRIEND.value().age).toBe(10)
-    age.subscribe(age => ages.push(age))
+    expect(friend$.value().age).toBe(10)
+    age$.subscribe(age => ages.push(age))
 
     store$.update(s => {
         s.users.jan.age = 12
@@ -109,13 +109,13 @@ test.only("combine lenses", () => {
         m.friend = "piet"
     })
 
-    expect(FRIEND.value()).toBe(store$.value().users.piet)
+    expect(friend$.value()).toBe(store$.value().users.piet)
 
     merger$.update(([store, michel]) => {
         store.users.piet.age = 42
     })
 
-    FRIEND.update(f => {
+    friend$.update(f => {
         f.age = 43
     })
 

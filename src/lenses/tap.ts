@@ -1,10 +1,10 @@
-import { Pipe, Lens, BaseLens } from "../internal";
+import { Pipe, Lens, Builder, asBuilder } from "../internal";
 
 export type ILogger<T = any> = (newValue: T, oldValue: T, lens: string) => void
 
 // TODO: rename to tap
-export class Log extends Pipe {
-    constructor(base: BaseLens, private logger: ILogger) {
+class Log extends Pipe {
+    constructor(base: Lens, private logger: ILogger) {
         super(base)
     }
 
@@ -24,6 +24,14 @@ export class Log extends Pipe {
     }
 }
 
-export function defaultLog<T>(this: Lens<T>, newValue: T, _oldValue: T, lens: string) {
+function defaultLog<T>(this: Lens<T>, newValue: T, _oldValue: T, lens: string) {
     console.log(`[remmi] ${lens}: ${JSON.stringify(newValue)}`)
+}
+
+export function tap<T>(logger?: ILogger): Builder<T, Lens<T>>;
+export function tap(logger: ILogger = defaultLog) {
+    return asBuilder(function(lens: Lens): Lens {
+        // TODO: from cache
+        return new Log(lens, logger)
+    })
 }
