@@ -2,6 +2,8 @@
 
 _Go away! Nothing to see here yet_
 
+_Not so scary immutable state_
+
 _Materialized views for immutable data_
 
 Remmi is a fresh take on data flow and state management by very explitly deliniating the concepts of [values and identities](https://www.youtube.com/watch?v=Gyp2QDr7YkU).

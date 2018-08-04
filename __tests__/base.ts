@@ -1,4 +1,66 @@
 import {createStore, merge, select, readOnly, fork, tap} from "../src/remmi"
+import { Lens } from "../src/internal";
+
+type Loc = { x: number, y: number }
+
+test("type inferance", () => {
+    const data = {
+        loc: {
+            x: 3,
+            y: 5
+        }
+    }
+    const store = createStore(data)
+
+    let d: Lens<Loc>
+    d = store.view("loc")
+    d = store.view(select("loc"))
+    d = store.view(d => d.loc)
+    d = store.view(select(d => d.loc))
+    d = store.view("loc")
+
+    {
+        const a = store.view("loc")
+        a.view("x")
+        const b = store.view(d => d.loc)
+        b.view("x")
+        const c = store.view(select(d => d.loc))
+        c.view("x")
+        const e = store.view(select("loc"))
+        e.view("x")
+        const f = store.view(readOnly)
+        f.view("loc")
+        f.view("loc").value().x
+    }
+
+    let x: Lens<typeof data>
+    x = store
+    x = store.view(readOnly)
+
+
+    {
+        const a = store.view(d => d, "loc")
+        a.view("x")
+        const b = store.view(d => d, d => d.loc)
+        b.view("x")
+        const c = store.view(d => d, select(d => d.loc))
+        c.view("x")
+        const e = store.view(d => d, select("loc"))
+        e.view("x")
+        const f = store.view(d => d, readOnly)
+        f.view("loc")
+        f.view("loc").value().x
+    }
+
+    //.view(readOnly)
+    //.view("loc")
+
+    // d = store.view(d=>d, select("loc"))
+    // d = store.view(d=>d, d => d.loc)
+    // d = store.view(d=>d, select(d => d.loc))
+    // d = store.view(d=>d, readOnly).view("loc")
+
+})
 
 test("read & update through lens", () => {
     const data = {

@@ -8,6 +8,7 @@
   "jsnext:main": "dist/remmi.module.js",
   "react-native": "dist/remmi.module.js",
   "types": "./dist/remmi.d.ts",
+  "sideEffects": false,
   "scripts": {
     "watch": "jest --watch",
     "test": "jest",

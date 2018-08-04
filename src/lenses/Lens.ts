@@ -27,19 +27,26 @@ export interface Lens<T = any> {
 
     // 2-ary
     view<A, R>(builder: Builder<T, Lens<A>>, builder2: Builder<A, R>): R
-    view<A, R>(builder: Builder<T, Lens<A>>, selector: Selector<A, R>): Lens<R>
-    view<A, K extends keyof A>(builder: Builder<T, Lens<A>>, selector: K): Lens<A[K]>
-    // TOOD: add the 4th overlaod!
-
     view<A, R>(selector: Selector<T, A>, builder: Builder<A, R>): R
-    view<A, R>(selector: Selector<T, A>, selector2: Selector<A, R>): Lens<R>
-    view<A, K extends keyof A>(selector: Selector<T, A>, selector2: K): Lens<A[K]>
-
     view<K extends keyof T, R>(selector: K, builder: Builder<T[K], R>): R
-    view<K extends keyof T, R>(selector: K, selector2: Selector<T[K], R>): Lens<R>
-    view<K extends keyof T, K2 extends keyof T[K]>(selector: K, selector2: K2): Lens<T[K][K2]>
+    view<A, R>(builder: LousyBuilder<T, Lens<A>>, builder2: Builder<A, R>): R
 
-    // TODO: variadic versions... ?
+    view<A, R>(builder: Builder<T, Lens<A>>, selector: Selector<A, R>): Lens<R>
+    view<A, R>(selector: Selector<T, A>, selector2: Selector<A, R>): Lens<R>
+    view<K extends keyof T, R>(selector: K, selector2: Selector<T[K], R>): Lens<R>
+    view<A, R>(builder: LousyBuilder<T, Lens<A>>, selector: Selector<A, R>): Lens<R>
+
+    view<A, K extends keyof A>(builder: Builder<T, Lens<A>>, selector: K): Lens<A[K]>
+    view<A, K extends keyof A>(selector: Selector<T, A>, selector2: K): Lens<A[K]>
+    view<K extends keyof T, K2 extends keyof T[K]>(selector: K, selector2: K2): Lens<T[K][K2]>
+    view<A, K extends keyof A>(builder: LousyBuilder<T, Lens<A>>, selector: K): Lens<A[K]>
+
+    view<A, R>(builder: Builder<T, Lens<A>>, builder2: LousyBuilder<A, R>): R
+    view<A, R>(builder: Selector<T, A>, builder2: LousyBuilder<A, R>): R
+    view<K extends keyof T, R>(selector: K, builder: LousyBuilder<T[K], R>): R
+    view<A, R>(builder: LousyBuilder<T, Lens<A>>, builder2: LousyBuilder<A, R>): R
+
+    // 3 -ary
 
     // generator / iterator api?
 }
