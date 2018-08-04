@@ -1,4 +1,4 @@
-import { fail, Pipe, asBuilder, Lens } from "../internal"
+import { fail, Pipe, Lens } from "../internal"
 
 class ReadOnly extends Pipe {
     update(_updater: any) {
@@ -17,5 +17,3 @@ class ReadOnly extends Pipe {
 export function readOnly<T>(lens: Lens<T>): Lens<T> {
     return new ReadOnly(lens)
 }
-
-asBuilder(readOnly)

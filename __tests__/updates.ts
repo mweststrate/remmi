@@ -1,4 +1,4 @@
-import {createStore, merge} from "../src/remmi"
+import {createStore, merge, select} from "../src/remmi"
 
 test("store update overloads", () => {
     const s = createStore<any>("3")
@@ -85,7 +85,7 @@ test("select field update overloads", () => {
 
 test("select fn update overloads", () => {
     const a = createStore<any>({ x: "3" })
-    const s = a.view(s => s.x)
+    const s = a.view(select(s => s.x))
 
     expect(() => {
         s.update(4)

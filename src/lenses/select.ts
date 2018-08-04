@@ -1,4 +1,4 @@
-import { Pipe, Lens, Selector, BaseLens, validateUpdater, runUpdater, asBuilder, Builder, updaterNeedsReassignment } from "../internal";
+import { Pipe, Lens, Selector, BaseLens, validateUpdater, runUpdater, Builder, updaterNeedsReassignment } from "../internal";
 
 class Select<B, R> extends Pipe implements Lens<R> {
     constructor(base: Lens, public selector: Selector<B, R>) {
@@ -63,7 +63,7 @@ class SelectField extends Pipe {
 export function select<T, R>(selector: Selector<T, R>): Builder<T, Lens<R>>
 export function select<T, K extends keyof T>(selector: K): Builder<T, Lens<T[K]>>
 export function select(selector: any): any {
-    return asBuilder(function (lens: BaseLens): Lens {
+    return function (lens: BaseLens): Lens {
         if (typeof selector === "number")
             selector = ""  +selector // normalize to string
         // if we created a lens for the very same selector before, find it!
@@ -77,5 +77,5 @@ export function select(selector: any): any {
         }
         lens.selectorCache.set(selector, s)
         return s
-    })
+    }
 }

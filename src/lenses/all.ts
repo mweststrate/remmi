@@ -1,4 +1,4 @@
-import { Pipe, Lens, asBuilder, keys, BaseLens } from "../internal";
+import { Pipe, Lens, keys, BaseLens } from "../internal";
 
 class All extends Pipe {
     constructor(private source: Lens) {
@@ -32,5 +32,3 @@ export function all<X, T extends {[key: string]: X}>(lens: Lens<T>): Lens<(Lens<
 export function all(lens: Lens): Lens {
     return new All(lens)
 }
-
-asBuilder(all)

@@ -15,15 +15,12 @@ test("type inferance", () => {
     let d: Lens<Loc>
     d = store.view("loc")
     d = store.view(select("loc"))
-    d = store.view(d => d.loc)
     d = store.view(select(d => d.loc))
     d = store.view("loc")
 
     {
         const a = store.view("loc")
         a.view("x")
-        const b = store.view(d => d.loc)
-        b.view("x")
         const c = store.view(select(d => d.loc))
         c.view("x")
         const e = store.view(select("loc"))
@@ -39,27 +36,16 @@ test("type inferance", () => {
 
 
     {
-        const a = store.view(d => d, "loc")
+        const a = store.view(select(d => d), "loc")
         a.view("x")
-        const b = store.view(d => d, d => d.loc)
+        const b = store.view(select(d => d), select(d => d.loc))
         b.view("x")
-        const c = store.view(d => d, select(d => d.loc))
-        c.view("x")
-        const e = store.view(d => d, select("loc"))
+        const e = store.view(select(d => d), select("loc"))
         e.view("x")
-        const f = store.view(d => d, readOnly)
+        const f = store.view(select(d => d), readOnly)
         f.view("loc")
         f.view("loc").value().x
     }
-
-    //.view(readOnly)
-    //.view("loc")
-
-    // d = store.view(d=>d, select("loc"))
-    // d = store.view(d=>d, d => d.loc)
-    // d = store.view(d=>d, select(d => d.loc))
-    // d = store.view(d=>d, readOnly).view("loc")
-
 })
 
 test("read & update through lens", () => {
@@ -72,7 +58,7 @@ test("read & update through lens", () => {
 
     const store = createStore(data)
     expect(store.value()).toBe(data)
-    const lens = store.view(s => s.loc)
+    const lens = store.view(select(s => s.loc))
 
     expect(lens.value().x).toBe(3)
     const base = lens.value()
@@ -147,14 +133,14 @@ test("combine lenses", () => {
 
     const ages = []
     const store$ = createStore(data)
-    const michel$ = store$.view(s => s.users.michel)
+    const michel$ = store$.view(select(s => s.users.michel))
     // const michel2$ = store$.view(select(s => s.users.michel))
     // const michelRo$ = store$.view(readOnly)
 
     const merger$ = merge(store$, michel$)
     const friend$ = merge(
-        store$.view(select(s => s.users)), // obviously selec tis not needed here
-        michel$.view(m => m.friend)
+        store$.view(select(s => s.users)),
+        michel$.view(select(m => m.friend))
     ).view(select(([users, friend]) => users[friend]))
     const age$ = friend$.view(select(f => f.age))
 
@@ -220,7 +206,7 @@ test("combine lenses - fields", () => {
     const michel = store.view(select("users"), select("michel")) // strongly typed!
     const merger = merge(store, michel)
     const friend = merge(store.view("users"), michel.view("friend")).view(
-        ([users, friend]) => users[friend]
+        select(([users, friend]) => users[friend])
     )
     const age = friend.view("age")
 
@@ -244,7 +230,6 @@ test("combine lenses - fields", () => {
         store.users.piet.age = 42
     })
 
-    debugger
     friend.update(f => {
         f.age = 43
     })
@@ -271,7 +256,7 @@ test("future ref", () => {
     const s = createStore({} as any)
 
     const values: any = []
-    const michel = s.view(s => s.users).view(users => users && users.michel)
+    const michel = s.view(select(s => s.users), select(users => users && users.michel))
     michel.subscribe(v => values.push(v))
 
     s.update(s => {
@@ -287,8 +272,8 @@ test("future ref", () => {
 
 test("no glitches", () => {
     const x = createStore({x: 3, y: 4})
-    const sum = merge(x.view(x => x.x), x.view(y => y.y)).view(
-        ([x, y]) => x + y
+    const sum = merge(x.view(select(x => x.x)), x.view(select(y => y.y))).view(
+        select(([x, y]) => x + y)
     )
     const values = []
     sum.subscribe(s => values.push(s))
@@ -311,18 +296,18 @@ test("cleanup", () => {
             x.a.b.c += 1
         })
 
-    const a = x.view(x => {
+    const a = x.view(select(x => {
         events.push("select a")
         return x.a
-    })
-    const b = a.view(x => {
+    }))
+    const b = a.view(select(x => {
         events.push("select b")
         return x.b
-    })
-    const c = b.view(x => {
+    }))
+    const c = b.view(select(x => {
         events.push("select c")
         return x.c
-    })
+    }))
 
     inc()
 
@@ -369,13 +354,13 @@ test("cache lenses", () => {
     const s = createStore({x: {y: {z: 4}}})
     const x = s.view("x")
     const getY = x => x.y
-    const y = x.view(getY)
+    const y = x.view(select(getY))
     const d = y.subscribe(() => {})
 
     const x2 = s.view("x")
     expect(x2).toBe(x)
 
-    const y2 = x2.view(getY)
+    const y2 = x2.view(select(getY))
     expect(y2).toBe(y)
 
     d()

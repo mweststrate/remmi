@@ -1,4 +1,4 @@
-import { Pipe, Lens, Builder, asBuilder } from "../internal";
+import { Pipe, Lens, Builder } from "../internal";
 
 export type ILogger<T = any> = (newValue: T, oldValue: T, lens: string) => void
 
@@ -30,8 +30,8 @@ function defaultLog<T>(this: Lens<T>, newValue: T, _oldValue: T, lens: string) {
 
 export function tap<T>(logger?: ILogger): Builder<T, Lens<T>>;
 export function tap(logger: ILogger = defaultLog) {
-    return asBuilder(function(lens: Lens): Lens {
+    return function(lens: Lens): Lens {
         // TODO: from cache
         return new Log(lens, logger)
-    })
+    }
 }

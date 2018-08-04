@@ -105,11 +105,11 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     view(...things: any[]): any {
         // TODO: put read / write from cache here?
         return things.reduce((acc, factory) => {
-            if (factory.isBuilder === true)
+            if (typeof factory === "function")
                 return factory(acc)
+            if (typeof factory === "string" || typeof factory === "number")
+                return select(factory as any)(acc) // TODO: fix typings // optimize, just the select creator function directly
             // TOOO: better split out?
-            if (typeof factory === "string" || typeof factory === "number" || typeof factory === "function")
-                return select(factory)(acc) // optimize, just the select creator function directly
             fail("Not a valid view or view factory: " + factory)
         }, this)
     }

@@ -1,4 +1,4 @@
-import { _shallowEqual, Pipe, asBuilder, Lens } from "../internal";
+import { _shallowEqual, Pipe, Lens } from "../internal";
 
 class ShallowEqual extends Pipe {
     recompute() {
@@ -20,5 +20,3 @@ class ShallowEqual extends Pipe {
 export function shallowEqual<T>(lens: Lens<T>): Lens<T> {
     return new ShallowEqual(lens)
 }
-
-asBuilder(shallowEqual)

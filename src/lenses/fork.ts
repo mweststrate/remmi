@@ -1,4 +1,4 @@
-import { Pipe, Updater, Lens, Builder, asBuilder, createStore } from "../internal";
+import { Pipe, Updater, Lens, Builder, createStore } from "../internal";
 
 export interface IRecorder<T = any> {
     pause(): void
@@ -57,10 +57,10 @@ class Recorder extends Pipe implements IRecorder {
 export function fork<T>(recordActions: true): Builder<T, Lens<T> & IRecorder<T>>
 export function fork<T>(recordActions?: false): Builder<T, Lens<T>>
 export function fork(recordActions = false) {
-    return asBuilder(function(lens: Lens) {
+    return function(lens: Lens) {
         const fork = createStore(lens.value())
         if (recordActions)
             return new Recorder(fork)
         return fork
-    })
+    }
 }

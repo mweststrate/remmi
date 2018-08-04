@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Lens, Tracker, Disposer, Builder, asBuilder, all } from "../internal";
+import { Lens, Tracker, Disposer, Builder, all } from "../internal";
 
 class AutoRender extends React.PureComponent {
     tracker?: Tracker
@@ -72,22 +72,22 @@ export function autoRender(fn: () => React.ReactNode) {
 export function render<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<T>, React.ReactElement<any>>
 export function render(renderer: (value: any) => React.ReactNode): any {
     // TODO: should accept oroginal lens as argument
-    return asBuilder(function (lens: Lens) {
+    return function (lens: Lens) {
         return React.createElement(RenderLens, {
             lens,
             renderer
         })
-    })
+    }
 }
 
 export function renderAll<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<T[]>, React.ReactElement<any>>
 export function renderAll<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<{[key: string]: T}>, React.ReactElement<any>>
 export function renderAll(renderer: (value: any) => React.ReactNode): any {
     // TODO: should accept key as argument?
-    return asBuilder(function (lens: Lens) {
+    return function (lens: Lens) {
         return React.createElement(RenderLenses, {
             lens,
             renderer
         })
-    })
+    }
 }

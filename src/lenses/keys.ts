@@ -1,4 +1,4 @@
-import { Lens, emptyArray, asBuilder, shallowEqual } from "../internal";
+import { Lens, emptyArray, shallowEqual, select } from "../internal";
 
 function keySelector(value: any): any[] {
     if (Array.isArray(value))
@@ -10,7 +10,5 @@ function keySelector(value: any): any[] {
 
 export function keys<T>(lens: Lens<T>): Lens<(keyof T)[]>
 export function keys(lens: Lens): Lens {
-    return lens.view(keySelector as any, shallowEqual)
+    return lens.view(select(keySelector as any), shallowEqual)
 }
-
-asBuilder(keys)
