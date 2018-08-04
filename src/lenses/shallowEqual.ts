@@ -1,22 +1,17 @@
-import { _shallowEqual, Pipe, Lens } from "../internal";
+import { _shallowEqual, Lens } from "../internal";
 
-class ShallowEqual extends Pipe {
-    recompute() {
-        const value = this.base.value()
-        if (_shallowEqual(this.state, value))
-            return this.state
-        return value
-    }
-
-    getCacheKey() {
-        return ShallowEqual
-    }
-
-    describe() {
-        return `${this.base.describe()}.shallowEqual()`
-    }
-}
+const ShallowEqual =  { ShallowEqualLens: true }
 
 export function shallowEqual<T>(lens: Lens<T>): Lens<T> {
-    return new ShallowEqual(lens)
+    return lens.pipe({
+        cacheKey: ShallowEqual,
+        recompute(_base, newBaseValue, currentValue) {
+            if (_shallowEqual(currentValue, newBaseValue))
+                return currentValue!
+            return newBaseValue
+        },
+        describe(base) {
+            return `${base.describe()}.shallowEqual()`
+        }
+    })
 }

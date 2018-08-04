@@ -5,7 +5,9 @@ import {
     Disposer,
     notifyRead,
     once,
-    select
+    select,
+    PipeConfig,
+    Pipe2
 } from "../internal"
 
 let lensId = 0;
@@ -116,6 +118,10 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     toString() {
         return `Lens[${this.describe()}]`
+    }
+
+    pipe<R>(config: Partial<PipeConfig<T, R>>): Lens<R> {
+        return new Pipe2(this, config)
     }
 
     abstract recompute(): T;

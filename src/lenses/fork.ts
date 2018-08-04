@@ -15,7 +15,7 @@ class Recorder extends Pipe implements IRecorder {
     update(updater: any) {
         if (this.recording)
             this.recordedUpdates.push(updater)
-        return super.update(updater)
+        return this.base.update(updater)
     }
 
     pause() {

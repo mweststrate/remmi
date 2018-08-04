@@ -1,3 +1,5 @@
+import { PipeConfig } from "../internal";
+
 export type Disposer = () => void
 export type Handler<T = any> = (value: T) => void
 export type Selector<T = any, X = any> = (base: T) => X
@@ -11,6 +13,8 @@ export interface Lens<T = any> {
     value(): T
     subscribe(handler: Handler<T>): Disposer
     update(producer: Updater<T>): void
+    pipe<R>(config: Partial<PipeConfig<T, R>>): Lens<R> // TODO: make this just internal? Or merge with .view as overload?
+    describe(): string
 
     // 1-ary
     view<R>(builder: Builder<T, R>): R
