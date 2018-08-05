@@ -30,9 +30,9 @@ export abstract class Pipe extends BaseLens {
 
 export interface PipeConfig<T, R> {
     cacheKey: any // TODO
-    recompute(base: Lens<T>, newBaseValue: T, currentValue: R | undefined): R
-    update(base: Lens<T>, updater: Updater<R>): void
-    describe(base: Lens<T>): string
+    recompute(newBaseValue: T, currentValue: R | undefined, self: Lens<R>): R // TODO: rename: onNext
+    update(updater: Updater<R>, next: (updater: Updater<T>) => void, self: Lens<R>): void // TODO: rename: onUpdate
+    description: string
 }
 
 // TODO: rename to Pipe
@@ -45,17 +45,21 @@ export class Pipe2<T, R> extends BaseLens<R> {
             cacheKey = undefined,
             recompute = defaultRecompute,
             update = defaultUpdate,
-            describe = defaultDescribe
+            description = "(unknown pipe)"
         } = config
-        this.config = { cacheKey, recompute, update, describe }
+        this.config = { cacheKey, recompute, update, description }
     }
 
     recompute(): any {
-        return this.config.recompute(this.base, this.base.value(), this.state)
+        return this.config.recompute(this.base.value(), this.state, this)
     }
 
     update(updater: ((draft: any) => void)) {
-        this.config.update(this.base, updater)
+        this.config.update(updater, this.nextUpdate, this)
+    }
+
+    nextUpdate = (updater: Updater<T>) => {
+        this.base.update(updater)
     }
 
     getCacheKey() { // TODO: should be removed
@@ -71,18 +75,14 @@ export class Pipe2<T, R> extends BaseLens<R> {
     }
 
     describe() {
-        return this.config.describe(this.base)
+        return (this.base as BaseLens).describe() + "." + this.config.description
     }
 }
 
-function defaultRecompute(_lens: Lens, baseValue: any) {
-    return baseValue
+function defaultRecompute(nextValue: any) {
+    return nextValue
 }
 
-function defaultUpdate(lens: Lens, updater: Updater) {
-    lens.update(updater)
-}
-
-function defaultDescribe(lens: Lens) {
-    return (lens as BaseLens).describe() + ".(unknown pipe)"
+function defaultUpdate(updater: Updater, next: (updater: Updater) => void) {
+    next(updater) // TODO: eliminate some function in Pipe.update to make stack friendlier?
 }

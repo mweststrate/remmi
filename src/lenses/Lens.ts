@@ -14,7 +14,6 @@ export interface Lens<T = any> {
     subscribe(handler: Handler<T>): Disposer
     update(producer: Updater<T>): void
     pipe<R>(config: Partial<PipeConfig<T, R>>): Lens<R> // TODO: make this just internal? Or merge with .view as overload?
-    describe(): string
 
     // 1-ary
     view<R>(builder: Builder<T, R>): R

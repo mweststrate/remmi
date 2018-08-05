@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`combine lenses - fields 1`] = `
-"Lens[merge(Store5.users, Store5.users.michel.friend).{function (_a) {
+"Lens[merge(Store5.users, Store5.users.michel.friend).<function (_a) {
         var users = _a[0],friend = _a[1];
         return users[friend];
-    }}]"
+    }>]"
 `;
 
 exports[`logging 1`] = `Array []`;
@@ -14,12 +14,12 @@ Array [
   Array [
     2,
     undefined,
-    "Lens[Store18.x.y]",
+    "Lens[Store18.x.y.log()]",
   ],
   Array [
     2,
     undefined,
-    "Lens[Store18.x.y]",
+    "Lens[Store18.x.y.log()]",
   ],
 ]
 `;
@@ -29,17 +29,17 @@ Array [
   Array [
     2,
     undefined,
-    "Lens[Store18.x.y]",
+    "Lens[Store18.x.y.log()]",
   ],
   Array [
     2,
     undefined,
-    "Lens[Store18.x.y]",
+    "Lens[Store18.x.y.log()]",
   ],
   Array [
     3,
     undefined,
-    "Lens[Store18.x.y]",
+    "Lens[Store18.x.y.log()]",
   ],
 ]
 `;

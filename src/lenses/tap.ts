@@ -11,13 +11,11 @@ export function tap(logger: ILogger = defaultLog) {
     return function(lens: Lens): Lens {
         return lens.pipe({
             cacheKey: logger,
-            recompute(base, newBaseValue, currentValue) {
-                logger(newBaseValue, currentValue, base.toString())
+            recompute(newBaseValue, currentValue, self) {
+                logger(newBaseValue, currentValue, self.toString())
                 return newBaseValue
             },
-            describe(base) {
-                return `${base.describe()}.log()`
-            }
+            description: "log()"
         })
     }
 }
