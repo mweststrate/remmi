@@ -13,6 +13,9 @@ export interface Lens<T = any> {
     value(): T
     subscribe(handler: Handler<T>): Disposer
     update(producer: Updater<T>): void
+    /**
+     * Pipe produces a new lens from a single other lens
+     */
     pipe<R>(config: Partial<PipeConfig<T, R>>): Lens<R> // TODO: make this just internal? Or merge with .view as overload?
 
     // 1-ary

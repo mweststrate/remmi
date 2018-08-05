@@ -7,7 +7,7 @@ import {
     once,
     select,
     PipeConfig,
-    Pipe2
+    Pipe
 } from "../internal"
 
 let lensId = 0;
@@ -121,7 +121,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     pipe<R>(config: Partial<PipeConfig<T, R>>): Lens<R> {
-        return new Pipe2(this, config)
+        return new Pipe(this, config)
     }
 
     abstract recompute(): T;

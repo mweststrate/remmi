@@ -146,3 +146,4 @@ TODO
 * [ ] example promise model
 * [ ] merge toStream / fromStream support?
 * [ ] fix all the tostrings
+* [ ] make toString() better reflect actual call description
