@@ -21,7 +21,8 @@ test("all 1", () => {
     expect(lB.value()).toEqual({ x: 4 })
 
     const sub = a.subscribe(newValue => {
-        expect(newValue).toEqual([lB])
+        expect(newValue.length).toBe(1)
+        expect(newValue[0]).toBe(lB)
     })
     s.update(d => { delete d.a })
 })
@@ -42,7 +43,8 @@ test("all 2", () => {
     expect(lB.value()).toEqual({ x: 4 })
 
     const sub = a.subscribe(newValue => {
-        expect(newValue).toEqual([lA])
+        expect(newValue.length).toBe(1)
+        expect(newValue[0]).toBe(lA)
     })
     s.update(d => { d.splice(0, 1) })
     sub()

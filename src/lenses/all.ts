@@ -14,7 +14,7 @@ export function all(lens: Lens): Lens {
         recompute(nextValue) {
             // source.keys() already includes shallow comparision, so
             // base value has always introduced or removed entries here
-            return nextValue.map((key: any) => lens.view(key))
+            return nextValue.map((key: any) => Object.assign(lens.view(key), { key }))
         },
         update() {
             // question: or make this actually possible, and just cal on base?

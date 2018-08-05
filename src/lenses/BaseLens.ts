@@ -105,13 +105,11 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     view(...things: any[]): any {
-        // TODO: put read / write from cache here?
         return things.reduce((acc, factory) => {
             if (typeof factory === "function")
                 return factory(acc)
             if (typeof factory === "string" || typeof factory === "number")
                 return select(factory as any)(acc) // TODO: fix typings // optimize, just the select creator function directly
-            // TOOO: better split out?
             fail("Not a valid view or view factory: " + factory)
         }, this)
     }
@@ -121,6 +119,8 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     pipe<R>(config: Partial<PipeConfig<T, R>>): Lens<R> {
+        if (config.cacheKey !== undefined && this.selectorCache.has(config.cacheKey))
+            return this.selectorCache.get(config.cacheKey)!
         return new Pipe(this, config)
     }
 
@@ -132,7 +132,6 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     abstract update(producer: ((draft: T) => void)): void
 
-    // TODO: should be static
     abstract getCacheKey(): any;
 
     abstract describe(): string

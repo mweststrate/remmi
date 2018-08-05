@@ -20,6 +20,12 @@ class Store<T> extends BaseLens<T> {
         super()
         this.state = initialValue
         this.subscribe(noop) // stores are always kept alive
+        Object.defineProperty(this, "currentDraft", { // keeps jest from dying on revoked proxies..
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: undefined
+        })
     }
 
     update(updater: any) {

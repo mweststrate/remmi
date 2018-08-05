@@ -4,19 +4,11 @@ export function select<T, R>(selector: Selector<T, R>): Builder<T, Lens<R>>
 export function select<T, K extends keyof T>(selector: K): Builder<T, Lens<T[K]>>
 export function select(selector: any): any {
     return function (lens: BaseLens): Lens {
-        if (typeof selector === "number")
-            selector = "" + selector // normalize to string
-
-        let s: BaseLens | undefined = lens.selectorCache.get(selector) // TODO: different place
-
-        if (s) return s
         if (typeof selector === "function")
-            s = selectFn(lens, selector)
-        else if (typeof selector === "string")
-            s = selectProp(lens, selector)
-        else return fail("Invalid selector, expected number, string or function. Got: " + (typeof selector))
-        lens.selectorCache.set(selector, s)
-        return s
+            return selectFn(lens, selector)
+        if (typeof selector === "string" || typeof selector === "number")
+            return selectProp(lens, "" + selector)
+        return fail("Invalid selector, expected number, string or function. Got: " + (typeof selector))
     }
 }
 
