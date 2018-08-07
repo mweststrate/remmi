@@ -1,4 +1,4 @@
-import { BaseLens, Lens } from "../internal";
+import { BaseLens, Lens, noop } from "../internal";
 import { Updater } from "./Lens";
 
 export interface PipeConfig<T, R> {
@@ -6,6 +6,8 @@ export interface PipeConfig<T, R> {
     recompute(newBaseValue: T, currentValue: R | undefined, self: Lens<R>): R // TODO: rename: onNext
     update(updater: Updater<R>, next: (updater: Updater<T>) => void, self: Lens<R>): void // TODO: rename: onUpdate
     description: string
+    onSuspend(): void
+    onResume(): void
 }
 
 export class Pipe<T, R> extends BaseLens<R> {
@@ -17,9 +19,11 @@ export class Pipe<T, R> extends BaseLens<R> {
             cacheKey = undefined,
             recompute = defaultRecompute,
             update = defaultUpdate,
-            description = "(unknown pipe)"
+            description = "(unknown pipe)",
+            onSuspend = noop,
+            onResume = noop
         } = config
-        this.config = { cacheKey, recompute, update, description }
+        this.config = { cacheKey, recompute, update, description, onSuspend, onResume }
     }
 
     recompute(): any {
@@ -40,10 +44,12 @@ export class Pipe<T, R> extends BaseLens<R> {
 
     resume() {
         (this.base as BaseLens).registerDerivation(this)
+        this.config.onResume()
     }
 
     suspend() {
         (this.base as BaseLens).removeDerivation(this)
+        this.config.onSuspend()
     }
 
     describe() {
