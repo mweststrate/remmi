@@ -9,12 +9,21 @@ export function all<X, T extends {[key: string]: X}>(
     lens: Lens<T>
 ): Lens<(Lens<X> & {key: string})[]>
 export function all(lens: Lens): Lens {
+    // all sublenses are always cached and reconciled until all is GC-ed itself
+    let subLensCache = new Map<string, Lens>()
     return lens.view(keys).pipe({
         cacheKey: All,
         recompute(nextValue) {
             // source.keys() already includes shallow comparision, so
             // base value has always introduced or removed entries here
-            return nextValue.map((key: any) => Object.assign(lens.view(key), { key }))
+            const newCache = new Map<string, Lens>()
+            const lenses = nextValue.map((key: any) => {
+                const subLens = subLensCache.get(key) || lens.view(key)
+                newCache.set(key, subLens)
+                return subLens
+            })
+            subLensCache = newCache
+            return lenses
         },
         update() {
             // question: or make this actually possible, and just cal on base?

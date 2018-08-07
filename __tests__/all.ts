@@ -16,8 +16,10 @@ test("all 1", () => {
     expect(v[1].key).toBe("b")
 
     const lA = v[0]
+
     const lB = v[1]
     expect(lA.value()).toBe(3)
+
     expect(lB.value()).toEqual({ x: 4 })
 
     const sub = a.subscribe(newValue => {
