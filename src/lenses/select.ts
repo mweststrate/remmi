@@ -1,7 +1,7 @@
 import { Lens, Selector, BaseLens, validateUpdater, runUpdater, Builder, updaterNeedsReassignment, fail } from "../internal";
 
 export function select<T, R>(selector: Selector<T, R>): Builder<T, Lens<R>>
-export function select<T, K extends keyof T>(selector: K): Builder<T, Lens<T[K]>>
+export function select<T, K extends keyof T>(selector: K): Builder<T, Lens<T[K]> & { key: K }>
 export function select(selector: any): any {
     return function (lens: BaseLens): Lens {
         if (typeof selector === "function")
@@ -29,8 +29,8 @@ function selectFn<T, R>(lens: Lens<T>, selector: Selector<T, R>): Lens<R> {
     })
 }
 
-function selectProp<T, K extends keyof T>(lens: Lens<T>, key: K): Lens<T[K]> {
-    return lens.pipe({
+function selectProp<T, K extends keyof T>(lens: Lens<T>, key: K): Lens<T[K]> & { key: K } {
+    return Object.assign(lens.pipe({
         cacheKey: key,
         recompute(newBaseValue) {
             if (newBaseValue === null || newBaseValue === undefined)
@@ -50,5 +50,5 @@ function selectProp<T, K extends keyof T>(lens: Lens<T>, key: K): Lens<T[K]> {
             })
         },
         description: "" + key
-    })
+    }), { key }) as any
 }
