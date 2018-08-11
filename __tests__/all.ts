@@ -24,7 +24,7 @@ test("all 1", () => {
 
     const sub = a.subscribe(newValue => {
         expect(newValue.length).toBe(1)
-        expect(newValue[0]).toBe(lB)
+        expect(newValue[0]).toBe(lB) // reconciled!
     })
     s.update(d => { delete d.a })
 })
