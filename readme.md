@@ -249,3 +249,14 @@ TODO
 * [ ] merge toStream / fromStream support?
 * [ ] fix all the tostrings
 * [ ] make toString() better reflect actual call description
+* [ ] form / to stream?
+* [ ] memoized map / filter
+* [ ] `by` and `groupBy`
+* [ ] obtain parent or DI mechanism? (or use model closures for that?)
+* [ ] parallelel pipe / lenses mechanism?
+* [ ] patch stream from lens?
+* [ ] diff stream from lens?
+* [ ] be able to reject status during propagate of update?
+* [ ] merge as view?
+* [ ] computed / autorun as view?
+* [ ] deepEqual selector
