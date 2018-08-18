@@ -6,11 +6,11 @@ import {
     notifyRead,
     once,
     select,
-    PipeConfig,
+    TransformConfig,
     Pipe
 } from "../internal"
 
-let lensId = 0;
+let lensId = 0
 
 export abstract class BaseLens<T = any> implements Lens<T> {
     readonly selectorCache = new Map<any, BaseLens>()
@@ -43,7 +43,9 @@ export abstract class BaseLens<T = any> implements Lens<T> {
                 this.state = this.recompute()
                 if (this.state !== old) {
                     notify(this.subscriptions, this.state)
-                    this.changedDerivations!.forEach(d => d.propagateReady(true))
+                    this.changedDerivations!.forEach(d =>
+                        d.propagateReady(true)
+                    )
                     return
                 }
             }
@@ -68,7 +70,8 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             this.resume()
         }
         const disposer = subscribe(this.subscriptions, handler)
-        return once(() => { // optimize: shouldn't need additional closure
+        return once(() => {
+            // optimize: shouldn't need additional closure
             disposer()
             if (!this.hot) {
                 this.state = undefined // prevent leaking mem
@@ -96,18 +99,16 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         if (idx === -1) fail("Illegal state") // todo fail
         this.derivations.splice(idx, 1)
         const cacheKey = lens.getCacheKey()
-        if (cacheKey !== undefined)
-            this.selectorCache.delete(cacheKey)
+        if (cacheKey !== undefined) this.selectorCache.delete(cacheKey)
         if (!this.hot) {
             this.state = undefined // prevent leaking mem
             this.suspend()
         }
     }
 
-    view(...things: any[]): any {
+    do(...things: any[]): any {
         return things.reduce((acc, factory) => {
-            if (typeof factory === "function")
-                return factory(acc)
+            if (typeof factory === "function") return factory(acc)
             if (typeof factory === "string" || typeof factory === "number")
                 return select(factory as any)(acc) // TODO: fix typings // optimize, just the select creator function directly
             fail("Not a valid view or view factory: " + factory)
@@ -118,25 +119,27 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         return `Lens[${this.describe()}]`
     }
 
-    pipe<R>(config: Partial<PipeConfig<T, R>>): Lens<R> {
-        if (config.cacheKey !== undefined && this.selectorCache.has(config.cacheKey))
+    transform<R>(config: Partial<TransformConfig<T, R>>): Lens<R> {
+        if (
+            config.cacheKey !== undefined &&
+            this.selectorCache.has(config.cacheKey)
+        )
             return this.selectorCache.get(config.cacheKey)!
         return new Pipe(this, config)
     }
 
-    abstract recompute(): T;
+    abstract recompute(): T
 
-    abstract resume(): void;
+    abstract resume(): void
 
-    abstract suspend(): void;
+    abstract suspend(): void
 
     abstract update(producer: ((draft: T) => void)): void
 
-    abstract getCacheKey(): any;
+    abstract getCacheKey(): any
 
     abstract describe(): string
 }
-
 
 function notify(subscriptions: Handler[], value: any) {
     subscriptions.forEach(f => f(value)) // optimize

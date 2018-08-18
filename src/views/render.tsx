@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Lens, Tracker, Disposer, Builder, all } from "../internal";
+import { Lens, Tracker, Disposer, Transformer, all } from "../internal";
 
 class AutoRender extends React.PureComponent {
     tracker?: Tracker
@@ -60,7 +60,7 @@ class RenderLenses<T> extends React.PureComponent<{ lens: Lens<T[]>, renderer: (
 
     render() {
         return (
-            <RenderLens lens={this.props.lens.view(all)} renderer={this.allRenderer as any}/>
+            <RenderLens lens={this.props.lens.do(all)} renderer={this.allRenderer as any}/>
         )
     }
 }
@@ -69,7 +69,7 @@ export function autoRender(fn: () => React.ReactNode) {
     return React.createElement(AutoRender, {}, fn)
 }
 
-export function render<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<T>, React.ReactElement<any>>
+export function render<T>(renderer: (value: T) => React.ReactNode): Transformer<Lens<T>, React.ReactElement<any>>
 export function render(renderer: (value: any) => React.ReactNode): any {
     // TODO: should accept oroginal lens as argument
     return function (lens: Lens) {
@@ -80,8 +80,8 @@ export function render(renderer: (value: any) => React.ReactNode): any {
     }
 }
 
-export function renderAll<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<T[]>, React.ReactElement<any>>
-export function renderAll<T>(renderer: (value: T) => React.ReactNode): Builder<Lens<{[key: string]: T}>, React.ReactElement<any>>
+export function renderAll<T>(renderer: (value: T) => React.ReactNode): Transformer<Lens<T[]>, React.ReactElement<any>>
+export function renderAll<T>(renderer: (value: T) => React.ReactNode): Transformer<Lens<{[key: string]: T}>, React.ReactElement<any>>
 export function renderAll(renderer: (value: any) => React.ReactNode): any {
     // TODO: should accept key as argument?
     return function (lens: Lens) {

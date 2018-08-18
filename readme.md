@@ -1,12 +1,10 @@
 # Remmi
 
+_Immutable data + bidirection lenses = materialized reactive views_
+
 _Go away! Nothing to see here yet_
 
-_Not so scary immutable state_
-
-_Materialized views for immutable data_
-
-Remmi is a fresh take on data flow and state management by very explitly deliniating the concepts of [values and identities](https://www.youtube.com/watch?v=Gyp2QDr7YkU).
+Remmi is a fresh take on data flow and state management by very explicitly deliniating the concepts of [values and identities](https://www.youtube.com/watch?v=Gyp2QDr7YkU).
 Basically it is a weird mix of the concepts of lenses, streams and goodies from mobx like glitch free derivation graphs (and optionally transparent tracking).
 
 Conceptually Remmi allows you to build a set of lenses and prismas.
@@ -78,7 +76,7 @@ The post-fixing of the lens name with `$` is a recommended best practice, as it 
 Lenses are like materialized views in the database, they represent the latest state of the underlying data structure, and also accept updates to write data back. We can create new lenses by leveraging the `.view` method that all lenses expose:
 
 ```javascript
-const address$ = profile$.view("address")
+const address$ = profile$.do("address")
 
 address$.subscribe(address => {
       console.log("New address is: " + JSON.stringify(address))
@@ -100,13 +98,13 @@ profile$.update(profile => {
 Lenses create a view on a part of the state, and are self contained units that can be both subscribe to, and write to the state that backs the tree. Lenses are smart as they will only respond if the relevant part of the state has changed.
 
 If you are using typescript, you will note that lenses are strongly typed. For example the following statement results in a compile errors:
- `profile$.view("hobbies")` (profile doesn't have a `"hobbies"` field).
+ `profile$.do("hobbies")` (profile doesn't have a `"hobbies"` field).
 
 Because lenses have a very uniform structure, testing them is issue, for example to test logic around the concept of addresses, in a unit test you could refrain from creating an entire profile object, and just create a store for the address instead: `const address$ = createStore({ country: "The Netherlands", city: "Roosendaal", province: "Noord Brabant"})`. For the consumers it doesn't matter whether a lens is a root, or a materialized view on other lenses.
 
 # Basics 3: selectors functions
 
-`lens.view(key)` is actually a short-hand for `lens.view(select(key))`. The `.view` method of a lens is a very generic construct which can be used to derive all kinds of new views from a lens. This is not limited to producing other lenses, but also React components as we will see later.
+`lens.do(key)` is actually a short-hand for `lens.do(select(key))`. The `.view` method of a lens is a very generic construct which can be used to derive all kinds of new views from a lens. This is not limited to producing other lenses, but also React components as we will see later.
 
 `select` can not be used to pick an object from the state tree, it also accepts functions. Those functions should be pure and can construct arbitrarily new values from the tree (conceptually, this is very similar to reselect or computed values in MobX). For example:
 
@@ -118,7 +116,7 @@ const todos$ = createStore([
       { title: "Grok Remmi", done: false}
 ])
 
-const tasksLeft$ = todos$.view(select(todos => todos.filter(todo => todo.done === false).length))
+const tasksLeft$ = todos$.do(select(todos => todos.filter(todo => todo.done === false).length))
 
 tasksLeft$.subscribe(left => { console.log("Tasks left:", left) })
 todos$.update(todos => {
@@ -148,9 +146,9 @@ const app$ = createStore({
       }
 })
 
-const testTodo$ = app$.view("todos", 0) // same as app$.view("todos").view(0)
-const users$ = app$.view("users")
-const testTodoWithUserName$ = merge(testTodo$, users$).view(select(
+const testTodo$ = app$.do("todos", 0) // same as app$.do("todos").do(0)
+const users$ = app$.do("users")
+const testTodoWithUserName$ = merge(testTodo$, users$).do(select(
       ([todo, users]) => ({
             ...todo,
             assignee: users[todo.assignee].name
@@ -223,10 +221,6 @@ Gotchas
 
 TODO
 
-* [x] project setup
-* [x] transactional
-* [x] record / replay (fork / rebase) api's
-* [x] readonly
 * [ ] nice names in api
 * [ ] accurate typings
 * [ ] separate bindings
@@ -260,3 +254,5 @@ TODO
 * [ ] merge as view?
 * [ ] computed / autorun as view?
 * [ ] deepEqual selector
+* [ ] redux pipe
+* [ ] generator pipe

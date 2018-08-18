@@ -1,4 +1,4 @@
-import {Updater, Lens, Builder, createStore} from "../internal"
+import {Updater, Lens, Transformer, createStore} from "../internal"
 
 export interface IRecorder<T = any> {
     pause(): void
@@ -8,8 +8,8 @@ export interface IRecorder<T = any> {
 }
 
 // TODO: change fork to be not a builder, but an api like merge
-export function fork<T>(recordActions: true): Builder<T, Lens<T> & IRecorder<T>>
-export function fork<T>(recordActions?: false): Builder<T, Lens<T>>
+export function fork<T>(recordActions: true): Transformer<T, Lens<T> & IRecorder<T>>
+export function fork<T>(recordActions?: false): Transformer<T, Lens<T>>
 export function fork(recordActions = false) {
     return function(lens: Lens) {
         const fork = createStore(lens.value())
@@ -19,10 +19,10 @@ export function fork(recordActions = false) {
         let recording = true
 
         return Object.assign(
-            fork.pipe({
+            fork.transform({
                 cacheKey: undefined, // no caching!
                 description: "recorder(true)",
-                update(updater, next) {
+                onUpdate(updater, next) {
                     if (recording) recordedUpdates.push(updater)
                     next(updater)
                 }

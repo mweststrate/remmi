@@ -62,7 +62,7 @@
     "rollup-plugin-typescript2": "^0.15.1",
     "rollup-plugin-uglify": "^2.0.1",
     "ts-jest": "^22.4.6",
-    "typescript": "^2.9.2",
+    "typescript": "^3.0.0",
     "uglify-es": "^3.3.6",
     "yarn-or-npm": "^2.0.4"
   },

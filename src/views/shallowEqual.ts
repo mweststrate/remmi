@@ -1,15 +1,14 @@
-import { _shallowEqual, Lens } from "../internal";
+import {_shallowEqual, Lens} from "../internal"
 
-const ShallowEqual =  { ShallowEqualLens: true }
+const ShallowEqual = {ShallowEqualLens: true}
 
 export function shallowEqual<T>(lens: Lens<T>): Lens<T> {
-    return lens.pipe({
+    return lens.transform({
         cacheKey: ShallowEqual,
-        recompute(newBaseValue, currentValue) {
-            if (_shallowEqual(currentValue, newBaseValue))
-                return currentValue!
+        onNext(newBaseValue, currentValue) {
+            if (_shallowEqual(currentValue, newBaseValue)) return currentValue!
             return newBaseValue
         },
-        description: 'shallowEqual()'
+        description: "shallowEqual()"
     })
 }

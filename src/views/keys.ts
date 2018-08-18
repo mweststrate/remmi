@@ -10,5 +10,5 @@ function keySelector(value: any): any[] {
 
 export function keys<T>(lens: Lens<T>): Lens<(keyof T)[]>
 export function keys(lens: Lens): Lens {
-    return lens.view(select(keySelector as any), shallowEqual)
+    return lens.do(select(keySelector as any), shallowEqual)
 }
