@@ -14,7 +14,7 @@ export function grabValue<T>(lens: Lens<T>): T {
 }
 
 export function notify<T = any>(subscriptions: Handler<T>[], value: any) {
-    subscriptions.forEach(f => f(value)) // optimize
+    subscriptions.forEach(f => f(value))
 }
 
 export function subscribe<T = any>(
