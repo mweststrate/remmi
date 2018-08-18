@@ -15,7 +15,7 @@
     "test:build": "yarn-or-npm run build && node -e 'require(\".\")'",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "build": "cross-env NODE_ENV=production rollup -c",
-    "prettier": "prettier \"*/**/*.ts*\" --ignore-path ./.prettierignore --write",
+    "prettier": "prettier \"{src|test}/**/*.ts*\" --ignore-path ./.prettierignore --write",
     "precommit": "lint-staged",
     "prerelease": "yarn-or-npm run build",
     "release": "np --no-cleanup"

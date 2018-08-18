@@ -1,9 +1,11 @@
-import {createStore, model} from "remmi"
+import {createStore, model, select} from "remmi"
 
 function TodoStore(lens) {
     return {
         get unfinishedTodoCount$() {
-            return lens.do(s => s.todos.filter(todo => !todo.done).length)
+            return lens.do(
+                select(s => s.todos.filter(todo => !todo.done).length)
+            )
         },
         addTodo(title) {
             lens.update(s => {

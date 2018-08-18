@@ -67,6 +67,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     subscribe(handler: Handler<T>) {
         if (!this.hot) {
+            this.state = this.recompute() // TODO: make lazy
             this.resume()
         }
         const disposer = subscribe(this.subscriptions, handler)
@@ -82,6 +83,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     registerDerivation(lens: BaseLens) {
         if (!this.hot) {
+            this.state = this.recompute() // TODO: make lazy
             this.resume()
         }
         this.derivations.push(lens)

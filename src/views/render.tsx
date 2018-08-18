@@ -82,7 +82,9 @@ export function autoRender(fn: () => React.ReactNode) {
     return <AutoRender>{fn}</AutoRender>
 }
 
-export function render<T>(renderer: (value: T, lens: Lens<T>) => React.ReactNode): Transformer<T, React.ReactElement<any>> {
+export function render<T>(
+    renderer: (value: T, lens: Lens<T>) => React.ReactNode
+): Transformer<T, React.ReactElement<any>> {
     return (lens: Lens<T>) => <RenderLens lens={lens} renderer={renderer} />
 }
 
@@ -92,6 +94,8 @@ export function renderAll<T>(
 export function renderAll<T>(
     renderer: (value: T, lens: KeyedLens<T>) => React.ReactNode
 ): Transformer<Lens<{[key: string]: T}>, React.ReactElement<any>>
-export function renderAll(renderer: (value: any, lens: KeyedLens<any>) => React.ReactNode): any {
+export function renderAll(
+    renderer: (value: any, lens: KeyedLens<any>) => React.ReactNode
+): any {
     return (lens: Lens<any>) => <RenderLenses lens={lens} renderer={renderer} />
 }

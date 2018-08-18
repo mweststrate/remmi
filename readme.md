@@ -148,17 +148,21 @@ const app$ = createStore({
 
 const testTodo$ = app$.do("todos", 0) // same as app$.do("todos").do(0)
 const users$ = app$.do("users")
-const testTodoWithUserName$ = merge(testTodo$, users$).do(select(
-      ([todo, users]) => ({
+const testTodoWithUserName$ = testTodo$.do(
+      merge(users$),
+      select(([todo, users]) => ({
             ...todo,
             assignee: users[todo.assignee].name
-      })
-))
+      }))
+)
 
-console.log(testTodoWithUserName$.value) // prints: { title: "Test Remmi", done: true, assignee: "Michel" }
+console.log(testTodoWithUserName$.value()) // prints: { title: "Test Remmi", done: true, assignee: "Michel" }
 ```
 
 Merge produces a lens in itself, that just combines all the values of the input lenses as array.
+`.do` does not just accept a transformer; if you give it multiple once it chains them together. In other words,
+`lens$.do(x).do(y)` can simple be written as `lens$.do(x, y)`
+
 Note that this example is contrived, as the merge could also have been written using `select`.
 But in big applications you might want to send only a part of your state around, and merge shows how to create a lens that combine individual pieces again.
 

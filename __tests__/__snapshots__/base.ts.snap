@@ -6,9 +6,9 @@ exports[`combine lenses - fields 1`] = `
 	.do(merge(store .do(\\"users\\").do(\\"michel\\").do(\\"friend\\")))
 	.do(select(function (_a) { var users = _a[0],friend = _a[1]; return users[friend]; }))
 ]"
-`;
+`
 
-exports[`logging 1`] = `Array []`;
+exports[`logging 1`] = `Array []`
 
 exports[`logging 2`] = `
 Array [
@@ -31,7 +31,7 @@ Array [
 ]",
   ],
 ]
-`;
+`
 
 exports[`logging 3`] = `
 Array [
@@ -63,4 +63,4 @@ Array [
 ]",
   ],
 ]
-`;
+`
