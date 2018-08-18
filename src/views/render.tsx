@@ -1,5 +1,5 @@
 import * as React from "react"
-import {Lens, Tracker, Disposer, Transformer, all} from "../internal"
+import {Lens, Tracker, Disposer, Transformer, all, KeyedLens} from "../internal"
 
 class AutoRender extends React.PureComponent {
     tracker?: Tracker
@@ -18,9 +18,9 @@ class AutoRender extends React.PureComponent {
     }
 }
 
-class RenderLens<T> extends React.PureComponent<{
-    lens: Lens<T>
-    renderer: (value: T, lens: Lens<T>) => React.ReactNode
+class RenderLens<T, L extends Lens<T>> extends React.PureComponent<{
+    lens: L
+    renderer: (value: T, lens: L) => React.ReactNode
 }> {
     subscription?: Disposer
 
@@ -50,22 +50,21 @@ class RenderLens<T> extends React.PureComponent<{
     }
 }
 
-// TODO: fix all the typings! (or remove)
 class RenderLenses<T> extends React.PureComponent<{
     lens: Lens<T[]>
-    renderer: (value: T, lens: Lens<T>) => React.ReactNode
+    renderer: (value: T, lens: KeyedLens<T>) => React.ReactNode
 }> {
-    itemRenderer = (lens: Lens<T>) => {
+    itemRenderer = (lens: KeyedLens<T>) => {
         return (
             <RenderLens
-                key={(lens as any).key}
+                key={"" + lens.key}
                 lens={lens}
                 renderer={this.props.renderer}
             />
         )
     }
 
-    allRenderer = (lenses: Lens<T>[]) => {
+    allRenderer = (lenses: (KeyedLens<T>)[]) => {
         return <React.Fragment>{lenses.map(this.itemRenderer)}</React.Fragment>
     }
 
@@ -73,41 +72,26 @@ class RenderLenses<T> extends React.PureComponent<{
         return (
             <RenderLens
                 lens={this.props.lens.do(all)}
-                renderer={this.allRenderer as any}
+                renderer={this.allRenderer}
             />
         )
     }
 }
 
 export function autoRender(fn: () => React.ReactNode) {
-    return React.createElement(AutoRender, {}, fn)
+    return <AutoRender>{fn}</AutoRender>
 }
 
-export function render<T>(
-    renderer: (value: T) => React.ReactNode
-): Transformer<Lens<T>, React.ReactElement<any>>
-export function render(renderer: (value: any) => React.ReactNode): any {
-    // TODO: should accept oroginal lens as argument
-    return function(lens: Lens) {
-        return React.createElement(RenderLens, {
-            lens,
-            renderer
-        })
-    }
+export function render<T>(renderer: (value: T, lens: Lens<T>) => React.ReactNode): Transformer<T, React.ReactElement<any>> {
+    return (lens: Lens<T>) => <RenderLens lens={lens} renderer={renderer} />
 }
 
 export function renderAll<T>(
-    renderer: (value: T) => React.ReactNode
+    renderer: (value: T, lens: KeyedLens<T>) => React.ReactNode
 ): Transformer<Lens<T[]>, React.ReactElement<any>>
 export function renderAll<T>(
-    renderer: (value: T) => React.ReactNode
+    renderer: (value: T, lens: KeyedLens<T>) => React.ReactNode
 ): Transformer<Lens<{[key: string]: T}>, React.ReactElement<any>>
-export function renderAll(renderer: (value: any) => React.ReactNode): any {
-    // TODO: should accept key as argument?
-    return function(lens: Lens) {
-        return React.createElement(RenderLenses, {
-            lens,
-            renderer
-        })
-    }
+export function renderAll(renderer: (value: any, lens: KeyedLens<any>) => React.ReactNode): any {
+    return (lens: Lens<any>) => <RenderLenses lens={lens} renderer={renderer} />
 }

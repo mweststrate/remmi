@@ -48,7 +48,16 @@ export class Merge<
     }
 
     describe() {
-        return "merge(" + this.bases.map(b => b.describe()).join(", ") + ")"
+        return (
+            this.bases[0].describe() +
+            "\n\t.do(merge(" +
+            this.bases
+                .slice(1)
+                .map(b => b.describe())
+                .join(", ")
+                .replace(/\n\t/g, "") +
+            "))"
+        )
     }
 }
 

@@ -62,3 +62,14 @@ export function isObject(thing: any) {
         (thing.constructor === Object || thing.constructor === undefined)
     )
 }
+
+export function stringifyFunction(fn: Function): string {
+    if (fn.name) return fn.name
+    const lines = fn.toString().split("\n")
+    if (lines.length <= 4) return lines.map(trim).join(" ")
+    return "<function>"
+}
+
+export function trim(str: string) {
+    return str.replace(/^\s+|\s+$/g, "")
+}

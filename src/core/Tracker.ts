@@ -1,4 +1,12 @@
-import {merge, Lens, Merge, _shallowEqual, noop, Disposer} from "../internal"
+import {
+    merge,
+    Lens,
+    Merge,
+    _shallowEqual,
+    noop,
+    Disposer,
+    createStore
+} from "../internal"
 
 let readListener: undefined | ((lens: Lens) => void)
 
@@ -7,7 +15,7 @@ export function notifyRead(lens: Lens) {
 }
 
 export class Tracker {
-    merge: Merge = new Merge([])
+    merge: Lens<any> = new Merge([])
     disposeMerge: Disposer = this.merge.subscribe(noop)
 
     constructor(private onInvalidate: () => void) {}
@@ -20,14 +28,19 @@ export class Tracker {
             return fn()
         } finally {
             const newDeps = Array.from(dependencies)
-            if (!_shallowEqual(newDeps, this.merge.bases)) {
-                // TODO: still needed with merge caching?
-
-                //     // don't create merge if only one dep
-                const nextMerge =
-                    newDeps.length === 1
-                        ? newDeps[0]
-                        : merge.apply(undefined, newDeps as any) // TODO: fix typings
+            if (!_shallowEqual(newDeps, this.getDependencies())) {
+                // don't create merge if only one dep
+                const nextMerge: Lens<any> =
+                    newDeps.length === 0
+                        ? (console.warn(
+                              "[immer] The Tracker did not use any lenses"
+                          ),
+                          createStore(undefined))
+                        : newDeps.length === 1
+                          ? newDeps[0]
+                          : newDeps[0].do(
+                                merge.apply(undefined, newDeps.slice(1))
+                            )
                 if (nextMerge !== this.merge) {
                     const {disposeMerge} = this
                     this.merge = nextMerge

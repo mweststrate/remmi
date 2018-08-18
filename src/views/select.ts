@@ -6,13 +6,15 @@ import {
     runUpdater,
     Transformer,
     updaterNeedsReassignment,
-    fail
+    fail,
+    KeyedLens,
+    stringifyFunction
 } from "../internal"
 
 export function select<T, R>(selector: Selector<T, R>): Transformer<T, Lens<R>>
 export function select<T, K extends keyof T>(
     selector: K
-): Transformer<T, Lens<T[K]> & {key: K}>
+): Transformer<T, KeyedLens<T[K], K>>
 export function select(selector: any): any {
     return function(lens: BaseLens): Lens {
         if (typeof selector === "function") return selectFn(lens, selector)
@@ -38,14 +40,14 @@ function selectFn<T, R>(lens: Lens<T>, selector: Selector<T, R>): Lens<R> {
                 runUpdater(baseState, updater)
             })
         },
-        description: "<" + selector.toString() + ">" // TODO: improve
+        description: `select(${stringifyFunction(selector)})`
     })
 }
 
 function selectProp<T, K extends keyof T>(
     lens: Lens<T>,
     key: K
-): Lens<T[K]> & {key: K} {
+): KeyedLens<T[K], K> {
     return Object.assign(
         lens.transform({
             cacheKey: key,
@@ -66,7 +68,7 @@ function selectProp<T, K extends keyof T>(
                     else runUpdater(baseState, updater)
                 })
             },
-            description: "" + key
+            description: `"${key}"`
         }),
         {key}
     ) as any

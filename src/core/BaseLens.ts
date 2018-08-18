@@ -2,7 +2,6 @@ import {
     fail,
     Lens,
     Handler,
-    Disposer,
     notifyRead,
     once,
     select,
@@ -119,7 +118,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     toString() {
-        return `Lens[${this.describe()}]`
+        return `Lens[${this.describe()}\n]`
     }
 
     transform<R>(config: Partial<TransformConfig<T, R>>): Lens<R> {

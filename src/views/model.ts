@@ -14,7 +14,7 @@ export function model(modelDefinition: IModelDefinition<any, any>) {
         })
         const memberDefinitions = modelDefinition(lens)
         // optimize: only check in production
-        // TODO: hide baseLens internally to avoid naming conflicts on members?
+        // hide baseLens internally to avoid naming conflicts on members?
         for (let key in memberDefinitions)
             if (key in modelLens)
                 fail(

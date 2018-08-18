@@ -7,7 +7,6 @@ export interface IRecorder<T = any> {
     replay(target: Lens<T>): void
 }
 
-// TODO: change fork to be not a builder, but an api like merge
 export function fork<T>(
     recordActions: true
 ): Transformer<T, Lens<T> & IRecorder<T>>
@@ -47,7 +46,6 @@ export function fork(recordActions = false) {
                 replay(this: Lens, target: Lens = this) {
                     target.update((draft: any) => {
                         recordedUpdates.forEach(u => {
-                            // TODO: fix and normalise u
                             ;(u as any)(draft)
                         })
                     })

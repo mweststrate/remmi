@@ -50,7 +50,6 @@ export class Pipe<T, R> extends BaseLens<R> {
     }
 
     getCacheKey() {
-        // TODO: should be removed
         return this.config.cacheKey
     }
 
@@ -66,7 +65,10 @@ export class Pipe<T, R> extends BaseLens<R> {
 
     describe() {
         return (
-            (this.base as BaseLens).describe() + "." + this.config.description
+            (this.base as BaseLens).describe() +
+            "\n\t.do(" +
+            this.config.description +
+            ")"
         )
     }
 }
@@ -79,5 +81,5 @@ function defaultUpdate<T = any>(
     updater: Updater<T>,
     next: (updater: Updater<T>) => void
 ) {
-    next(updater) // TODO: eliminate some function in Pipe.update to make stack friendlier?
+    next(updater) // note: eliminate some function in Pipe.update to make stack friendlier?
 }

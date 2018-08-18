@@ -11,13 +11,21 @@ import {
     Lens
 } from "../internal"
 
+export interface StoreOptions {
+    name?: string
+}
+
+let storeId = 0
+
 class Store<T> extends BaseLens<T> {
     state: T
     private currentDraft?: T
     private isRunningUpdate = false
+    private name: string
 
-    constructor(initialValue: T, private name: string) {
+    constructor(initialValue: T, options?: StoreOptions) {
         super()
+        this.name = options && options.name ? options.name : "Store" + ++storeId
         this.state = initialValue
         this.subscribe(noop) // stores are always kept alive
         Object.defineProperty(this, "currentDraft", {
@@ -83,12 +91,9 @@ class Store<T> extends BaseLens<T> {
     }
 }
 
-let storeId = 0
-
-// TODO: rename to store
 export function createStore<T>(
     initialValue: T,
-    name: string = "Store" + ++storeId
+    options?: StoreOptions
 ): Lens<T> {
-    return new Store(initialValue, name)
+    return new Store(initialValue, options)
 }

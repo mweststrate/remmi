@@ -213,7 +213,7 @@ test("combine lenses - fields", () => {
     }
 
     const ages = []
-    const store = createStore(data)
+    const store = createStore(data, {name: "store "})
     const michel = store.do(select("users"), select("michel")) // strongly typed!
     const merger = store.do(merge(michel))
     const friend = store.do(
@@ -253,12 +253,15 @@ test("combine lenses - fields", () => {
         users: {
             michel: {
                 name: "michel",
-                friend: "piet"
+                friend: "piet",
+                age: 33
             },
             jan: {
+                name: "jan",
                 age: 13
             },
             piet: {
+                name: "piet",
                 age: 43
             }
         }
@@ -288,9 +291,9 @@ test("future ref", () => {
 
 test("no glitches", () => {
     const x = createStore({x: 3, y: 4})
-    const sum = merge(x.do(select(x => x.x)), x.do(select(y => y.y))).do(
-        select(([x, y]) => x + y)
-    )
+    const sum = x
+        .do(select(x => x.x), merge(x.do(select(y => y.y))))
+        .do(select(([x, y]) => x + y))
     const values = []
     sum.subscribe(s => values.push(s))
 
@@ -461,27 +464,27 @@ test("forking - replay - erroring", () => {
 test("cache merge", () => {
     const s = createStore({x: {y: 1}})
     const x = s.do("x")
-    const m1 = merge(s, x)
-    let m2 = merge(s, x)
+    const m1 = s.do(merge(x))
+    let m2 = s.do(merge(x))
     expect(m2).not.toBe(m1) // not cached
 
     const d = m1.subscribe(() => {})
-    m2 = merge(s, x)
+    m2 = s.do(merge(x))
     expect(m2).toBe(m1) // from cache
 
-    m2 = merge(x, s)
-    expect(m2).not.toBe(m1) // order matters
+    const m3 = x.do(merge(s))
+    expect(m2).not.toBe(m3) // order matters
 
-    m2 = merge(s, s.do("x"))
+    m2 = s.do(merge(s.do("x")))
     expect(m2).toBe(m1) // from cache
 
     d()
-    m2 = merge(s, x)
-    expect(m2).not.toBe(m1) // not cached
+    const m4 = s.do(merge(x))
+    expect(m4).not.toBe(m1) // not cached
 })
 
 test("logging", () => {
-    const s = createStore({x: {y: 1}})
+    const s = createStore({x: {y: 1}}, {name: "test"})
     const y = s.do("x", "y")
     const stub = jest.fn()
     const log = y.do(tap(stub))
