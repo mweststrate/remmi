@@ -30,7 +30,7 @@ export class Pipe<T, R> extends BaseLens<R> {
         this.config = {
             cacheKey,
             onNext,
-            onUpdate,
+            onUpdate: onUpdate as any, // Typing error seems TS bug?
             description,
             onSuspend,
             onResume
@@ -75,6 +75,9 @@ function defaultRecompute(nextValue: any) {
     return nextValue
 }
 
-function defaultUpdate(updater: Updater, next: (updater: Updater) => void) {
+function defaultUpdate<T = any>(
+    updater: Updater<T>,
+    next: (updater: Updater<T>) => void
+) {
     next(updater) // TODO: eliminate some function in Pipe.update to make stack friendlier?
 }

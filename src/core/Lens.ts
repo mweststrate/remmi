@@ -1,12 +1,12 @@
-import {TransformConfig} from "../internal"
+import {TransformConfig, BaseLens} from "../internal"
 
 export type Disposer = () => void
-export type Handler<T = any> = (value: T) => void
-export type Selector<T = any, X = any> = (base: T) => X
-export type Updater<T = any> = ((draft: T) => void) | Partial<T> | T
+export type Handler<T = unknown> = (value: T) => void
+export type Selector<T = unknown, X = unknown> = (base: T) => X
+export type Updater<T = unknown> = ((draft: T) => void) | Partial<T> | T
 export type Transformer<T, R> = (lens: Lens<T>) => R
 
-export interface Lens<T = any> {
+export interface Lens<T = unknown> {
     value(): T
     subscribe(handler: Handler<T>): Disposer
     update(producer: Updater<T>): void
@@ -38,4 +38,8 @@ export interface Lens<T = any> {
     // TODO: more overloads (or TS 3?)
 
     // generator / iterator api?
+}
+
+export function isLens(thing: any): thing is Lens {
+    return thing instanceof BaseLens
 }

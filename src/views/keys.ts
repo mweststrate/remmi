@@ -1,10 +1,8 @@
-import { Lens, emptyArray, shallowEqual, select } from "../internal";
+import {Lens, emptyArray, shallowEqual, select} from "../internal"
 
 function keySelector(value: any): any[] {
-    if (Array.isArray(value))
-        return value.map((_v, idx) => idx) // optimize!
-    if (value !== null && typeof value === "object")
-        return Object.keys(value)
+    if (Array.isArray(value)) return value.map((_v, idx) => idx) // optimize!
+    if (value !== null && typeof value === "object") return Object.keys(value)
     return emptyArray
 }
 

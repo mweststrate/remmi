@@ -1,12 +1,31 @@
+import {Handler, Disposer, Lens} from "../internal"
+
 export const emptyArray = []
 Object.freeze(emptyArray)
 
-export function noop() {
-
-}
+export function noop() {}
 
 export function fail(msg: string): never {
     throw new Error("[remmi] " + msg)
+}
+
+export function grabValue<T>(lens: Lens<T>): T {
+    return lens.value()
+}
+
+export function notify<T = any>(subscriptions: Handler<T>[], value: any) {
+    subscriptions.forEach(f => f(value)) // optimize
+}
+
+export function subscribe<T = any>(
+    subscriptions: Handler<T>[],
+    handler: Handler<T>
+): Disposer {
+    subscriptions.push(handler)
+    return () => {
+        const idx = subscriptions.indexOf(handler)
+        if (idx !== -1) subscriptions.splice(idx, 1)
+    }
 }
 
 export function _shallowEqual(ar1: any, ar2: any) {
@@ -37,5 +56,9 @@ export function isArray(thing: any): thing is any[] {
 }
 
 export function isObject(thing: any) {
-    return typeof thing === "object" && thing !== null && (thing.constructor === Object || thing.constructor === undefined)
+    return (
+        typeof thing === "object" &&
+        thing !== null &&
+        (thing.constructor === Object || thing.constructor === undefined)
+    )
 }

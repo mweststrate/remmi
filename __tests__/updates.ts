@@ -1,4 +1,4 @@
-import {createStore, merge, select} from "../src/remmi"
+import {createStore, select} from "../src/remmi"
 
 test("store update overloads", () => {
     const s = createStore<any>("3")
@@ -38,12 +38,11 @@ test("store update overloads", () => {
         })
     }).toThrow("Updater functions should not return")
     expect(s.value()).toEqual([])
-
 })
 
 test("select field update overloads", () => {
-    const a = createStore<any>({ x: "3" })
-    const s = a.view("x")
+    const a = createStore<any>({x: "3"})
+    const s = a.do("x")
 
     s.update(4)
     expect(s.value()).toBe(4)
@@ -82,21 +81,20 @@ test("select field update overloads", () => {
     expect(s.value()).toEqual([])
 })
 
-
 test("select fn update overloads", () => {
-    const a = createStore<any>({ x: "3" })
-    const s = a.view(select(s => s.x))
+    const a = createStore<any>({x: "3"})
+    const s = a.do(select(s => s.x))
 
     expect(() => {
         s.update(4)
     }).toThrow("not reassignable")
 
     expect(() => {
-        a.update(d => d.x = {x: 3} )
+        a.update(d => (d.x = {x: 3}))
     }).toThrow("should not return values")
 
     a.update(d => {
-         d.x = {x: 3}
+        d.x = {x: 3}
     })
     expect(s.value()).toEqual({x: 3})
 
@@ -106,7 +104,9 @@ test("select fn update overloads", () => {
     s.update(() => undefined)
     expect(s.value()).toEqual({x: 3, y: 2})
 
-    a.update(d => { d.x = undefined })
+    a.update(d => {
+        d.x = undefined
+    })
     expect(s.value()).toEqual(undefined)
 
     s.update(d => {
@@ -114,18 +114,10 @@ test("select fn update overloads", () => {
     })
 
     expect(() => {
-        s.update({ y: 2})
+        s.update({y: 2})
     }).toThrow("not reassignable")
 
     expect(() => {
         s.update(d => 3)
     }).toThrow("Updater functions should not return")
 })
-
-// TODO: select fn then select field
-
-
-// TODO: merge then select field
-
-
-// TODO: replay

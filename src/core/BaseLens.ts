@@ -7,7 +7,9 @@ import {
     once,
     select,
     TransformConfig,
-    Pipe
+    Pipe,
+    subscribe,
+    notify
 } from "../internal"
 
 let lensId = 0
@@ -66,7 +68,6 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     subscribe(handler: Handler<T>) {
         if (!this.hot) {
-            // this.state = this.recompute() // TODO: do this lazily?
             this.resume()
         }
         const disposer = subscribe(this.subscriptions, handler)
@@ -82,7 +83,6 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     registerDerivation(lens: BaseLens) {
         if (!this.hot) {
-            // this.state = this.recompute() // TODO: do this lazily?
             this.resume()
         }
         this.derivations.push(lens)
@@ -107,11 +107,14 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     do(...things: any[]): any {
-        return things.reduce((acc, factory) => {
-            if (typeof factory === "function") return factory(acc)
-            if (typeof factory === "string" || typeof factory === "number")
-                return select(factory as any)(acc) // TODO: fix typings // optimize, just the select creator function directly
-            fail("Not a valid view or view factory: " + factory)
+        return things.reduce((acc, transformer) => {
+            if (typeof transformer === "function") return transformer(acc)
+            if (
+                typeof transformer === "string" ||
+                typeof transformer === "number"
+            )
+                return select(transformer as any)(acc) // optimize, just the select creator function directly
+            fail("Not a valid view or view factory: " + transformer)
         }, this)
     }
 
@@ -139,20 +142,4 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     abstract getCacheKey(): any
 
     abstract describe(): string
-}
-
-function notify(subscriptions: Handler[], value: any) {
-    subscriptions.forEach(f => f(value)) // optimize
-}
-
-function subscribe(subscriptions: Handler[], handler: Handler): Disposer {
-    subscriptions.push(handler)
-    return () => {
-        const idx = subscriptions.indexOf(handler)
-        if (idx !== -1) subscriptions.splice(idx, 1)
-    }
-}
-
-export function isLens(thing: any): thing is Lens {
-    return thing instanceof BaseLens
 }

@@ -5,9 +5,9 @@ exports[`combine lenses - fields 1`] = `
         var users = _a[0],friend = _a[1];
         return users[friend];
     }>]"
-`;
+`
 
-exports[`logging 1`] = `Array []`;
+exports[`logging 1`] = `Array []`
 
 exports[`logging 2`] = `
 Array [
@@ -22,7 +22,7 @@ Array [
     "Lens[Store18.x.y.log()]",
   ],
 ]
-`;
+`
 
 exports[`logging 3`] = `
 Array [
@@ -42,4 +42,4 @@ Array [
     "Lens[Store18.x.y.log()]",
   ],
 ]
-`;
+`

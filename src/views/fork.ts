@@ -8,7 +8,9 @@ export interface IRecorder<T = any> {
 }
 
 // TODO: change fork to be not a builder, but an api like merge
-export function fork<T>(recordActions: true): Transformer<T, Lens<T> & IRecorder<T>>
+export function fork<T>(
+    recordActions: true
+): Transformer<T, Lens<T> & IRecorder<T>>
 export function fork<T>(recordActions?: false): Transformer<T, Lens<T>>
 export function fork(recordActions = false) {
     return function(lens: Lens) {

@@ -3,9 +3,9 @@
 import {createStore, autorun} from "../src/remmi"
 
 test("tracker 1", () => {
-    const s = createStore({ x: 3, y: 4 })
-    const xLens = s.view("x")
-    const yLens = s.view("y")
+    const s = createStore({x: 3, y: 4})
+    const xLens = s.do("x")
+    const yLens = s.do("y")
 
     const events: number[] = []
 

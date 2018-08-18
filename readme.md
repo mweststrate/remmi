@@ -219,7 +219,7 @@ Gotchas
 * optimize: don't create selectors inline
 * don't accidentally return, like: `lens.update(x => x.y += 2)`
 
-TODO
+# Things to do
 
 * [ ] nice names in api
 * [ ] accurate typings
