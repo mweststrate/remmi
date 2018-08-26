@@ -8,7 +8,8 @@ import {
     TransformConfig,
     Pipe,
     subscribe,
-    notify
+    notify,
+    isLens
 } from "../internal"
 
 let lensId = 0
@@ -108,14 +109,17 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     do(...things: any[]): any {
-        return things.reduce((acc, transformer) => {
+        return things.reduce((acc, transformer, index) => {
+            // So, this is ok even if acc is not a lens anymore, just becomes a general chain...
             if (typeof transformer === "function") return transformer(acc)
+            if (!isLens(acc))
+                fail(`The transformer at argument ${index - 1} of '.do()' should produce a lens, but it returned a: (${typeof acc}) '${acc}`)
             if (
                 typeof transformer === "string" ||
                 typeof transformer === "number"
             )
                 return select(transformer as any)(acc) // optimize, just the select creator function directly
-            fail("Not a valid view or view factory: " + transformer)
+            fail(`Not a valid transformer at argument ${index} of '.do()', got: (${typeof transformer}) '${transformer}'`)
         }, this)
     }
 

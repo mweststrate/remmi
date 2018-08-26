@@ -17,6 +17,7 @@ export type Transformer<T, R> = (lens: Lens<T>) => R
 
 export interface Lens<T = unknown> {
     value(): T
+    // TODO: replace with effect
     subscribe(handler: Handler<T>): Disposer
     update(producer: Updater<T>): void
 

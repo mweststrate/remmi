@@ -67,11 +67,7 @@
     "yarn-or-npm": "^2.0.4"
   },
   "lint-staged": {
-    "*.jsx?": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.tsx?": [
+    "*.jsx,*.js,*.tsx,*.ts": [
       "prettier --write",
       "git add"
     ]

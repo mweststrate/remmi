@@ -225,12 +225,17 @@ Gotchas
 
 # Things to do
 
-* [ ] nice names in api
-* [ ] accurate typings
-* [ ] separate bindings
+## Earlier
+
+* [ ] `lens.parent` & `lens.root`
+* [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)` or `onRead` / `onWrite`
+
+## Later
+
+* [ ] something for volatile state through weak maps?
+* [ ] separate packages
 * [ ] symbol supports (primitive, observable, json etc)
-* [ ] nice toStrings
-* [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)`
+* [ ] nicer toStrings
 * [ ] custom lens creating:
       * createLensType({ name: string, onCompute, onUpdate, onSuspend, chainable: true })
 * [x] model api
@@ -247,7 +252,7 @@ Gotchas
 * [ ] merge toStream / fromStream support?
 * [ ] fix all the tostrings
 * [ ] make toString() better reflect actual call description
-* [ ] form / to stream?
+* [ ] form / to stream? / sink
 * [ ] memoized map / filter
 * [ ] `by` and `groupBy`
 * [ ] obtain parent or DI mechanism? (or use model closures for that?)
