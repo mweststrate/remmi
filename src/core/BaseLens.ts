@@ -3,14 +3,12 @@ import {
     Lens,
     Handler,
     notifyRead,
-    once,
     TransformConfig,
     Pipe,
-    subscribe,
-    notify,
     isLens,
     KeyedLens,
-    select
+    select,
+    subscribe
 } from "../internal"
 
 let lensId = 0
@@ -20,7 +18,6 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     // optimization: initialize fields as empty
     // optimization: no forEach
-    readonly subscriptions: Handler<T>[] = []
     readonly derivations: BaseLens[] = []
     readonly parents: BaseLens[] = []
     changedDerivations?: BaseLens[]
@@ -45,7 +42,6 @@ export abstract class BaseLens<T = any> implements Lens<T> {
                 const old = this.state
                 this.state = this.recompute()
                 if (this.state !== old) {
-                    notify(this.subscriptions, this.state)
                     this.changedDerivations!.forEach(d =>
                         d.propagateReady(true)
                     )
@@ -58,7 +54,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     protected get hot() {
-        return this.subscriptions.length || this.derivations.length
+        return this.derivations.length > 0
     }
 
     value() {
@@ -68,18 +64,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     subscribe(handler: Handler<T>) {
-        if (!this.hot) {
-            this.resume()
-        }
-        const disposer = subscribe(this.subscriptions, handler)
-        return once(() => {
-            // optimize: shouldn't need additional closure
-            disposer()
-            if (!this.hot) {
-                this.state = undefined // prevent leaking mem
-                this.suspend()
-            }
-        })
+        return this.do(subscribe(handler))
     }
 
     registerDerivation(lens: BaseLens) {

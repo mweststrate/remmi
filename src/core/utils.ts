@@ -13,21 +13,6 @@ export function grabValue<T>(lens: Lens<T>): T {
     return lens.value()
 }
 
-export function notify<T = any>(subscriptions: Handler<T>[], value: any) {
-    subscriptions.forEach(f => f(value))
-}
-
-export function subscribe<T = any>(
-    subscriptions: Handler<T>[],
-    handler: Handler<T>
-): Disposer {
-    subscriptions.push(handler)
-    return () => {
-        const idx = subscriptions.indexOf(handler)
-        if (idx !== -1) subscriptions.splice(idx, 1)
-    }
-}
-
 export function _shallowEqual(ar1: any, ar2: any) {
     // TODO: also for objects
     if (ar1 === ar2) return true

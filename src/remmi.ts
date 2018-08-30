@@ -13,5 +13,6 @@ export {
     renderAll,
     autoRender,
     autorun,
-    isLens
+    isLens,
+    subscribe
 } from "./internal"
