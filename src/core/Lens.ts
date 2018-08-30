@@ -15,9 +15,9 @@ export type Transformer<T, R> = (lens: Lens<T>) => R
 //     T2 extends TransformCall<R1>
 // >(transformer: T1, transformer2: T2): TransformResult<R1, T2>
 
+// prettier-ignore
 export interface Lens<T = unknown> {
     value(): T
-    // TODO: replace with effect
     subscribe(handler: Handler<T>): Disposer
     update(producer: Updater<T>): void
 
@@ -29,79 +29,18 @@ export interface Lens<T = unknown> {
 
     // 1-ary
     do<R>(transformer: Transformer<T, R>): R
-    do<K extends keyof T>(selector: K): KeyedLens<T[K], K>
+    do<A, R>(transformer: Transformer<T, Lens<A>>,transformer2: Transformer<A, R>): R
+    do<A, B, R>(t1: Transformer<T, Lens<A>>,t2: Transformer<A, Lens<B>>,t3: Transformer<B, R>): R
+    do<A, B, C, R>(t1: Transformer<T, Lens<A>>,t2: Transformer<A, Lens<B>>,t3: Transformer<B, Lens<C>>,t4: Transformer<C, R>): R
+    do<A, B, C, D, R>(t1: Transformer<T, Lens<A>>,t2: Transformer<A, Lens<B>>,t3: Transformer<B, Lens<C>>,t4: Transformer<C, Lens<D>>,t5: Transformer<D, R>): R
+    do(...transformers: (Transformer<any, any>)[]): any
 
-    // // 2-ary
-    do<A, R>(
-        transformer: Transformer<T, Lens<A>>,
-        transformer2: Transformer<A, R>
-    ): R
-    do<K extends keyof T, R>(selector: K, transformer: Transformer<T[K], R>): R
-
-    do<A, K extends keyof A>(
-        transformer: Transformer<T, Lens<A>>,
-        selector: K
-    ): KeyedLens<A[K], K>
-    do<K1 extends keyof T, K2 extends keyof T[K1]>(
-        selector: K1,
-        selector2: K2
-    ): KeyedLens<T[K1][K2], K2>
-
-    // 3 -ary
-    // only pure keys or pure selectors (otherwise combinations explode :-())
-    do<A, B, R>(
-        t1: Transformer<T, Lens<A>>,
-        t2: Transformer<A, Lens<B>>,
-        t3: Transformer<B, R>
-    ): R
-    do<K1 extends keyof T, K2 extends keyof T[K1], K3 extends keyof T[K1][K2]>(
-        selector: K1,
-        selector2: K2,
-        selector3: K3
-    ): KeyedLens<T[K1][K2][K3], K3>
-
-    // 4 -ary
-    do<A, B, C, R>(
-        t1: Transformer<T, Lens<A>>,
-        t2: Transformer<A, Lens<B>>,
-        t3: Transformer<B, Lens<C>>,
-        t4: Transformer<C, R>
-    ): R
-    do<
-        K1 extends keyof T,
-        K2 extends keyof T[K1],
-        K3 extends keyof T[K1][K2],
-        K4 extends keyof T[K1][K2][K3]
-    >(
-        selector: K1,
-        selector2: K2,
-        selector3: K3,
-        selector4: K4
-    ): KeyedLens<T[K1][K2][K3][K4], K4>
-
-    // 5 -ary
-    do<A, B, C, D, R>(
-        t1: Transformer<T, Lens<A>>,
-        t2: Transformer<A, Lens<B>>,
-        t3: Transformer<B, Lens<C>>,
-        t4: Transformer<C, Lens<D>>,
-        t5: Transformer<D, R>
-    ): R
-    do<
-        K1 extends keyof T,
-        K2 extends keyof T[K1],
-        K3 extends keyof T[K1][K2],
-        K4 extends keyof T[K1][K2][K3],
-        K5 extends keyof T[K1][K2][K3][K4]
-    >(
-        selector: K1,
-        selector2: K2,
-        selector3: K3,
-        selector4: K4,
-        selector5: K5
-    ): KeyedLens<T[K1][K2][K3][K4][K5], K5>
-    // any-ary
-    do(...transformers: (string | Transformer<any, any>)[]): any
+    // select(key), convenience api over .do(select(key))
+    select<K extends keyof T>(selector: K): KeyedLens<T[K], K>
+    select<K1 extends keyof T, K2 extends keyof T[K1]>(selector: K1,selector2: K2): KeyedLens<T[K1][K2], K2>
+    select<K1 extends keyof T,K2 extends keyof T[K1],K3 extends keyof T[K1][K2]>(selector: K1,selector2: K2,selector3: K3): KeyedLens<T[K1][K2][K3], K3>
+    select<K1 extends keyof T,K2 extends keyof T[K1],K3 extends keyof T[K1][K2],K4 extends keyof T[K1][K2][K3]>(selector: K1,selector2: K2,selector3: K3,selector4: K4): KeyedLens<T[K1][K2][K3][K4], K4>
+    select<K1 extends keyof T, K2 extends keyof T[K1], K3 extends keyof T[K1][K2], K4 extends keyof T[K1][K2][K3], K5 extends keyof T[K1][K2][K3][K4]>(selector: K1, selector2: K2, selector3: K3, selector4: K4, selector5: K5): KeyedLens<T[K1][K2][K3][K4][K5], K5>
 }
 
 export interface KeyedLens<T, K = keyof T> extends Lens<T> {

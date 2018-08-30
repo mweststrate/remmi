@@ -42,7 +42,7 @@ test("store update overloads", () => {
 
 test("select field update overloads", () => {
     const a = createStore<any>({x: "3"})
-    const s = a.do("x")
+    const s = a.select("x")
 
     s.update(4)
     expect(s.value()).toBe(4)

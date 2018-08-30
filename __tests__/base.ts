@@ -13,21 +13,21 @@ test("type inferance", () => {
     const store = createStore(data)
 
     let d: Lens<Loc>
-    d = store.do("loc")
+    d = store.select("loc")
     d = store.do(select("loc"))
     d = store.do(select(d => d.loc))
-    d = store.do("loc")
+    d = store.select("loc")
 
     {
-        const a = store.do("loc")
-        a.do("x")
+        const a = store.select("loc")
+        a.select("x")
         const c = store.do(select(d => d.loc))
-        c.do("x")
+        c.select("x")
         const e = store.do(select("loc"))
-        e.do("x")
+        e.select("x")
         const f = store.do(readOnly)
-        f.do("loc")
-        f.do("loc").value().x
+        f.select("loc")
+        f.select("loc").value().x
     }
 
     let x: Lens<typeof data>
@@ -35,15 +35,16 @@ test("type inferance", () => {
     x = store.do(readOnly)
 
     {
-        const a = store.do(select(d => d), "loc")
-        a.do("x")
+        const a = store.do(select(d => d), select("loc"))
+        a.select("x")
         const b = store.do(select(d => d), select(d => d.loc))
-        b.do("x")
+        b.select("x")
         const e = store.do(select(d => d), select("loc"))
-        e.do("x")
+        e.select("x")
         const f = store.do(select(d => d), readOnly)
-        f.do("loc")
-        f.do("loc").value().x
+        f.select("loc")
+        f.select("loc").value().x
+        const x: number = store.select("loc", "x").value()
     }
 })
 
@@ -114,7 +115,7 @@ test("read & update through subscription", () => {
     expect(values).toEqual([{x: 4, y: 5}, {x: 4, y: 6}, {a: 2}, null, {b: 3}])
 })
 
-test.only("combine lenses", () => {
+test("combine lenses", () => {
     const data = {
         users: {
             michel: {
@@ -136,10 +137,8 @@ test.only("combine lenses", () => {
     // const michel2$ = store$.do(select(s => s.users.michel))
     // const michelRo$ = store$.do(readOnly)
 
-    const merger$ = store$.do(merge(michel$))
-    const friend$ = store$.do(
-        select(s => s.users),
-        merge(michel$.do(select(m => m.friend))),
+    const merger$ = merge(store$, michel$)
+    const friend$ = merge(store$.select("users"), michel$.select("friend")).do(
         select(([users, friend]) => users[friend])
     )
     const age$ = friend$.do(select(f => f.age))
@@ -190,13 +189,16 @@ test("combine lenses - fields", () => {
         users: {
             michel: {
                 name: "michel",
-                friend: "jan"
+                friend: "jan",
+                age: 33
             },
             jan: {
-                age: 10
+                age: 10,
+                name: "jan"
             },
             piet: {
-                age: 20
+                age: 20,
+                name: "piet"
             }
         }
     }
@@ -204,13 +206,11 @@ test("combine lenses - fields", () => {
     const ages = []
     const store = createStore(data, {name: "store "})
     const michel = store.do(select("users"), select("michel")) // strongly typed!
-    const merger = store.do(merge(michel))
-    const friend = store.do(
-        "users",
-        merge(michel.do("friend")),
-        select(([users, friend]) => users[friend])
+    const merger = merge(store, michel)
+    const friend = merge(store.select("users"), michel.select("friend")).do(
+        select(([users, friend]) => users[friend as "piet"])
     )
-    const age = friend.do("age")
+    const age = friend.select("age")
 
     expect(friend.value().age).toBe(10)
     age.subscribe(age => ages.push(age))
@@ -231,6 +231,8 @@ test("combine lenses - fields", () => {
     merger.update(([store, michel]) => {
         store.users.piet.age = 42
     })
+
+    expect(store.value().users.piet.age).toBe(42)
 
     friend.update(f => {
         f.age = 43
@@ -279,17 +281,17 @@ test("future ref", () => {
 })
 
 test("no glitches", () => {
-    const x = createStore({x: 3, y: 4})
-    const sum = x
-        .do(select(x => x.x), merge(x.do(select(y => y.y))))
-        .do(select(([x, y]) => x + y))
+    const s = createStore({x: 3, y: 4})
+    const sum = merge(s.select("x"), s.select("y")).do(
+        select(([x, y]) => x + y)
+    )
     const values = []
     sum.subscribe(s => values.push(s))
 
-    x.update(x => {
+    s.update(x => {
         x.x = 4
     })
-    x.update(x => {
+    s.update(x => {
         x.y = 6
         x.x = 6
     })
@@ -306,6 +308,7 @@ test("cleanup", () => {
 
     const a = x.do(
         select(x => {
+            debugger
             events.push("select a")
             return x.a
         })
@@ -366,19 +369,19 @@ test("cleanup", () => {
 
 test("cache lenses", () => {
     const s = createStore({x: {y: {z: 4}}})
-    const x = s.do("x")
+    const x = s.select("x")
     const getY = x => x.y
     const y = x.do(select(getY))
     const d = y.subscribe(() => {})
 
-    const x2 = s.do("x")
+    const x2 = s.select("x")
     expect(x2).toBe(x)
 
     const y2 = x2.do(select(getY))
     expect(y2).toBe(y)
 
     d()
-    const x3 = s.do("x")
+    const x3 = s.select("x")
     expect(x3).not.toBe(x) // ideally it would be the same, but we cannot implement that without leaking memory
 })
 
@@ -452,29 +455,29 @@ test("forking - replay - erroring", () => {
 
 test("cache merge", () => {
     const s = createStore({x: {y: 1}})
-    const x = s.do("x")
-    const m1 = s.do(merge(x))
-    let m2 = s.do(merge(x))
+    const x = s.select("x")
+    const m1 = merge(s, x)
+    let m2 = merge(s, x)
     expect(m2).not.toBe(m1) // not cached
 
     const d = m1.subscribe(() => {})
-    m2 = s.do(merge(x))
+    m2 = merge(s, x)
     expect(m2).toBe(m1) // from cache
 
-    const m3 = x.do(merge(s))
+    const m3 = merge(x, s)
     expect(m2).not.toBe(m3) // order matters
 
-    m2 = s.do(merge(s.do("x")))
+    m2 = merge(s, s.select("x"))
     expect(m2).toBe(m1) // from cache
 
     d()
-    const m4 = s.do(merge(x))
+    const m4 = merge(s, x)
     expect(m4).not.toBe(m1) // not cached
 })
 
 test("logging", () => {
     const s = createStore({x: {y: 1}}, {name: "test"})
-    const y = s.do("x", "y")
+    const y = s.select("x", "y")
     const stub = jest.fn()
     const log = y.do(tap(stub))
 

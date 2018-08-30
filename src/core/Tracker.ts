@@ -36,11 +36,7 @@ export class Tracker {
                               "[immer] The Tracker did not use any lenses"
                           ),
                           createStore(undefined))
-                        : newDeps.length === 1
-                          ? newDeps[0]
-                          : newDeps[0].do(
-                                merge.apply(undefined, newDeps.slice(1))
-                            )
+                        : newDeps.length === 1 ? newDeps[0] : merge(...newDeps)
                 if (nextMerge !== this.merge) {
                     const {disposeMerge} = this
                     this.merge = nextMerge
