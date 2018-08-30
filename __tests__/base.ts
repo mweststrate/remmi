@@ -114,25 +114,18 @@ test("read & update through subscription", () => {
     expect(values).toEqual([{x: 4, y: 5}, {x: 4, y: 6}, {a: 2}, null, {b: 3}])
 })
 
-type User = {name: string; age: number; friend?: string}
-type Users = {[key: string]: User}
-type Store = {users: Users}
-
-test("combine lenses", () => {
-    const data: Store = {
+test.only("combine lenses", () => {
+    const data = {
         users: {
             michel: {
                 name: "michel",
-                friend: "jan",
-                age: 33
+                friend: "jan"
             },
             jan: {
-                age: 10,
-                name: "jan"
+                age: 10
             },
             piet: {
-                age: 20,
-                name: "piet"
+                age: 20
             }
         }
     }
@@ -140,6 +133,8 @@ test("combine lenses", () => {
     const ages = []
     const store$ = createStore(data)
     const michel$ = store$.do(select(s => s.users.michel))
+    // const michel2$ = store$.do(select(s => s.users.michel))
+    // const michelRo$ = store$.do(readOnly)
 
     const merger$ = store$.do(merge(michel$))
     const friend$ = store$.do(
@@ -178,15 +173,12 @@ test("combine lenses", () => {
         users: {
             michel: {
                 name: "michel",
-                friend: "piet",
-                age: 33
+                friend: "piet"
             },
             jan: {
-                name: "jan",
                 age: 13
             },
             piet: {
-                name: "piet",
                 age: 43
             }
         }
@@ -194,20 +186,17 @@ test("combine lenses", () => {
 })
 
 test("combine lenses - fields", () => {
-    const data: Store = {
+    const data = {
         users: {
             michel: {
                 name: "michel",
-                friend: "jan",
-                age: 33
+                friend: "jan"
             },
             jan: {
-                age: 10,
-                name: "jan"
+                age: 10
             },
             piet: {
-                age: 20,
-                name: "piet"
+                age: 20
             }
         }
     }
