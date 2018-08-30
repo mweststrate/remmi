@@ -265,3 +265,5 @@ Gotchas
 * [ ] deepEqual selector
 * [ ] redux pipe
 * [ ] generator pipe
+* [ ] support relative paths in `select(...)`?
+* [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
