@@ -8,7 +8,7 @@ export function all<X, T extends X[]>(
 export function all<X, T extends {[key: string]: X}>(
     lens: Lens<T>
 ): Lens<(Lens<X> & {key: string})[]>
-export function all(lens: Lens<any>): Lens {
+export function all(lens: Lens<any>): Lens<any> {
     // all sublenses are always cached and reconciled until all is GC-ed itself
     let subLensCache = new Map<string, Lens>()
     return lens.do(keys).transform({

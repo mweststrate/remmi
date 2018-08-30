@@ -10,7 +10,6 @@ import {
     notify,
     isLens,
     KeyedLens,
-    selectProp,
     select
 } from "../internal"
 

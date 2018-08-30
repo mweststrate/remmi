@@ -87,6 +87,7 @@ export function merge<A, B, C, D, E, F>(
     lens4: Lens<E>,
     lens5: Lens<F>
 ): Lens<[A, B, C, D, E, F]>
+export function merge(...lenses: Lens[]): Lens<any>
 export function merge(...lenses: Lens[]): Lens<any> {
     const existing = mergeCache.get(getMergeCacheKey(lenses))
     if (existing) return existing
