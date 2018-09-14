@@ -1,32 +1,36 @@
 # Remmi
 
-_Immutable data + bidirection lenses = materialized reactive views_
-
 _Go away! Nothing to see here yet_
 
-Remmi is a fresh take on data flow and state management by very explicitly deliniating the concepts of [values and identities](https://www.youtube.com/watch?v=Gyp2QDr7YkU).
-Basically it is a weird mix of the concepts of lenses, streams and goodies from mobx like glitch free derivation graphs (and optionally transparent tracking).
+_Materialized views for immutable data_
 
-Conceptually Remmi allows you to build a set of lenses and prismas.
-One can create an unlimited amount and complex trees of lenses, but in the end they reflect just different views on one central, immutable value: the state of the store.
+# Introduction
 
-![lenses](docs/lenses.jpg)
+Remmi is a library to create materialized views on top of immutable data.
+Granted, they are no materialized, but you conceptually Remmi works like a materialized view in the database on top of your immutable state tree:
 
-Lenses and immutable stores are no new concepts, but Immer adds a few fresh concepts to the list:
+1. Derive data from an immutability based state tree
+2. Any future changes in the source state tree will automatically be reflected in the view
+3. Any writes made to the view will not update the view, but write-through and update the original state instead.
 
-* Updates are very straight forward to apply tnx to [immer](https://github.com/mweststrate/immer)
-* Lenses act as two-way pipes; one can write to a lens and the lens will transparently apply the changes to the original root store. This makes it possible to decouple and isolate small parts of the state and makes asynchronous process easy
-* Lenses and stores share exactly the same api, which has great benefits for test
-* Remmi applies efficient, glitch-free derivation concept from MobX, which makes it impossible to observe stale or inconsistent data
-* All actions and derivations in Remmi are synchronous and transactional
-* Remmi supports the concepts of models; this makes it possible to design very friendly APIs around a particular lens and organize the code base by-feature
-* Remmi has first class integration with React. Render are optimized without needing further optimizations such as `shouldComponentUpdate`
-* Remmi optionally supports transparent tracking of dependencies, avoiding the need to set up explicit subscriptions
-* Remmi supports forking, cloning, replay of actions, patches and all that fancy stuff
+Where [immer](https://github.com/mweststrate/immer) solves the problem of "how to update a deep, immutable state tree in a convenient way",
+_remmi_ solves the opposite way: "given a deep, immutable state tree, how to create reactive, bi-directional views that observe the immutable state?".
+As such, immer is basically lenses, mobx, immutable data and reactive streams smooshed together.
 
-Is it better than MobX? Well, that is not mine to decide :-). But my initial guess: No. And so far this is just an experimental package. It is less efficient and syntactically more verbose. However if you prefer a single-immutable-value-source of truth, with less magic. You might fancy this one.
+# Features
 
-# Core cencept
+* Single value, immutable state tree
+* Fully reactive
+* Transactional, atomic updates
+* Strongly typed
+* First class support for async processes
+* Mostly simple function composition
+* Extremely extensible, please share and publish your own transformers!
+* `this`less
+* `null` safe (you can create, compose, chain lenses even when there is no backing value)
+
+
+# Core concepts
 
 ## Basics 1: creating lenses
 
@@ -125,6 +129,10 @@ todos$.update(todos => {
 // prints "Tasks left: 2"
 ```
 
+# Transformers
+
+TODO: explain concept of transformes
+
 # Basics 4: merging lenses
 
 The `merge` function can combine multiple lenses into a new one. (It is quite comparable to `Promise.all`).
@@ -194,7 +202,29 @@ API.md?
   - Redux
 
 
+# API
+
+TODO: generate and link from JSDocs
+
 ---
+
+![lenses](docs/lenses.jpg)
+
+Lenses and immutable stores are no new concepts, but Immer adds a few fresh concepts to the list:
+
+* Updates are very straight forward to apply tnx to [immer](https://github.com/mweststrate/immer)
+* Lenses act as two-way pipes; one can write to a lens and the lens will transparently apply the changes to the original root store. This makes it possible to decouple and isolate small parts of the state and makes asynchronous process easy
+* Lenses and stores share exactly the same api, which has great benefits for test
+* Remmi applies efficient, glitch-free derivation concept from MobX, which makes it impossible to observe stale or inconsistent data
+* All actions and derivations in Remmi are synchronous and transactional
+* Remmi supports the concepts of models; this makes it possible to design very friendly APIs around a particular lens and organize the code base by-feature
+* Remmi has first class integration with React. Render are optimized without needing further optimizations such as `shouldComponentUpdate`
+* Remmi optionally supports transparent tracking of dependencies, avoiding the need to set up explicit subscriptions
+* Remmi supports forking, cloning, replay of actions, patches and all that fancy stuff
+
+
+FAQ: Will it be better than MobX? Well, that is not mine to decide :-). But my initial guess: No. And so far this is just an experimental package. It is less efficient and syntactically more verbose. However if you prefer a single-immutable-value-source of truth, with less magic. You might fancy this one.
+
 
 Convenience api's
 * directly pass values to update
