@@ -143,7 +143,7 @@ test("select fn update overloads", () => {
 })
 
 test("updating a merge should work", () => {
-    const a = createStore({
+    const a = createStore<any>({
         x: 1,
         y: 2
     })

@@ -59,7 +59,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     value() {
         const res = this.hot ? this.state! : this.recompute()
-        notifyRead(this)
+        notifyRead(this as any)
         return res
     }
 
