@@ -1,14 +1,13 @@
+import {nothing} from "immer"
 import {
     Lens,
     Selector,
     BaseLens,
-    validateUpdater,
-    runUpdater,
     Transformer,
-    updaterNeedsReassignment,
     fail,
     KeyedLens,
-    stringifyFunction
+    stringifyFunction,
+    avoidReturns
 } from "../internal"
 
 export function select<T, R>(selector: Selector<T, R>): Transformer<T, Lens<R>>
@@ -36,8 +35,7 @@ function selectFn<T, R>(lens: Lens<T>, selector: Selector<T, R>): Lens<R> {
         onUpdate(updater, next) {
             next(draft => {
                 const baseState = selector(draft)
-                validateUpdater(baseState, updater, false)
-                runUpdater(baseState, updater)
+                avoidReturns(baseState, updater(baseState))
             })
         },
         description: `select(${stringifyFunction(selector)})`
@@ -49,7 +47,7 @@ function selectProp<T, K extends keyof T>(
     key: K
 ): KeyedLens<T[K], K> {
     return Object.assign(
-        lens.transform({
+        lens.transform<T[K]>({
             cacheKey: key,
             onNext(newBaseValue) {
                 if (newBaseValue === null || newBaseValue === undefined)
@@ -62,10 +60,11 @@ function selectProp<T, K extends keyof T>(
             onUpdate(updater, next) {
                 next(draft => {
                     const baseState = draft[key]
-                    validateUpdater(baseState, updater, true)
-                    if (updaterNeedsReassignment(baseState, updater))
-                        draft[key] = updater as any
-                    else runUpdater(baseState, updater)
+                    const res = updater(baseState)
+                    if (res === nothing)
+                        draft[key] = undefined as any
+                    else if (res !== undefined)
+                        draft[key] = res
                 })
             },
             description: `"${key}"`

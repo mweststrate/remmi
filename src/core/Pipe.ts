@@ -1,13 +1,12 @@
-import {BaseLens, Lens, noop} from "../internal"
-import {Updater} from "./Lens"
+import {BaseLens, Lens, noop, normalizeUpdater, Updater, Producer} from "../internal"
 
 export interface TransformConfig<T, R> {
     description: string
     cacheKey: any
     onNext(newBaseValue: T, currentValue: R | undefined, self: Lens<R>): R
     onUpdate(
-        updater: Updater<R>,
-        next: (updater: Updater<T>) => void,
+        updater: Producer<R>,
+        next: (updater: Producer<T>) => void,
         self: Lens<R>
     ): void
     onSuspend(): void
@@ -42,7 +41,7 @@ export class Pipe<T, R> extends BaseLens<R> {
     }
 
     update(updater: ((draft: any) => void)) {
-        this.config.onUpdate(updater, this.nextUpdate, this)
+        this.config.onUpdate(normalizeUpdater(updater), this.nextUpdate, this)
     }
 
     nextUpdate = (updater: Updater<T>) => {

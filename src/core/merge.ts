@@ -1,4 +1,7 @@
-import {BaseLens, Lens, grabValue} from "../internal"
+import { nothing } from "immer";
+
+import {BaseLens, Lens, grabValue, fail} from "../internal"
+import { normalizeUpdater } from "./updater-helpers";
 
 const mergeCache = new Map<string, Merge<any, any>>()
 
@@ -19,15 +22,24 @@ export class Merge<
 
     update(updater: ((draft: T) => T | void)) {
         const drafts: any[] = []
+        let collectedResults: any[]
         const grabNextDraft = () => {
             // probably optimizable
             this.bases[drafts.length].update(draft => {
                 drafts.push(draft)
                 if (drafts.length < this.bases.length) grabNextDraft()
-                else
+                else {
                     // we are now in the context of all producers of all bases
                     // let's call the updater function with those drafts!
-                    updater(drafts as any)
+                    const r = normalizeUpdater(updater)(drafts as any)
+                    if (r === undefined) collectedResults = drafts.slice()
+                    else if (!Array.isArray(r) || r.length !== this.bases.length)
+                        return fail(`updater for merge should return an array of length ${this.bases.length}, got: '${JSON.stringify(r)}'`)
+                    else
+                        collectedResults = r
+                }
+                const returnValue = collectedResults.pop()
+                return returnValue === undefined ? nothing : returnValue
             })
         }
         grabNextDraft()

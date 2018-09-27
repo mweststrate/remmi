@@ -4,6 +4,9 @@ _Go away! Nothing to see here yet_
 
 _Materialized views for immutable data_
 
+<a href="https://www.buymeacoffee.com/mweststrate" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>If you think Remmi is an idea worth pursuing, encourage me with coffee :-). Or even better: discuss it with me over a real one the next opportunity!
+
+
 # Introduction
 
 Remmi is a library to create materialized views on top of immutable data.
@@ -16,6 +19,7 @@ Granted, they are no materialized, but you conceptually Remmi works like a mater
 Where [immer](https://github.com/mweststrate/immer) solves the problem of "how to update a deep, immutable state tree in a convenient way",
 _remmi_ solves the opposite way: "given a deep, immutable state tree, how to create reactive, bi-directional views that observe the immutable state?".
 As such, immer is basically lenses, mobx, immutable data and reactive streams smooshed together.
+Note that "view" on the original state can be interpreted here in it's broadest term: derived data, UI (like React or lithtml), outgoing or incoming data streams or even OO-like data models!
 
 # Features
 
@@ -248,10 +252,20 @@ Recipes
 
 ---
 
-Gotchas
+# Gotchas
 
 * optimize: don't create selectors inline
 * don't accidentally return, like: `lens.update(x => x.y += 2)`
+* using `nothing` from immer
+
+# Credits
+
+Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi just stole ideas left and right):
+* Materialized views in databases (see also: [turning the database inside out](https://www.youtube.com/watch?v=fU9hR3kiOK0))
+* Reactive streams like RxJS as immutable data distributing mechanism
+* Lense libraries (like baobab) to create a partially view on the state
+* MobX for reactive, sychnronous, atomic, glitchfree distribution of changes using a dependency tree
+* MobX-state-tree for providing models around immutable state
 
 # Things to do
 
@@ -259,9 +273,11 @@ Gotchas
 
 * [ ] `lens.parent` & `lens.root`
 * [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)` or `onRead` / `onWrite`
+* [ ] different invariant, revert rollback semantics?
 
 ## Later
 
+* [ ] something cool with lithtml
 * [ ] something for volatile state through weak maps?
 * [ ] separate packages
 * [ ] symbol supports (primitive, observable, json etc)
@@ -297,3 +313,4 @@ Gotchas
 * [ ] generator pipe
 * [ ] support relative paths in `select(...)`?
 * [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
+* [ ] https://docusaurus.io/

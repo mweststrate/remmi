@@ -3,7 +3,8 @@ import {TransformConfig, BaseLens} from "../internal"
 export type Disposer = () => void
 export type Handler<T = unknown> = (value: T) => void
 export type Selector<T = unknown, X = unknown> = (base: T) => X
-export type Updater<T = unknown> = ((draft: T) => void) | Partial<T> | T
+export type Producer<T = unknown> = (draft: T) => (void | T)
+export type Updater<T = unknown> = Producer<T> | Partial<T> | T
 export type Transformer<T, R> = (lens: Lens<T>) => R
 
 // More accurate / easy typing, but fails inference for select(x)...

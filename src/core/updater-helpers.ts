@@ -1,24 +1,14 @@
-import {isFn, isObject, fail, Updater} from "../internal"
+import { nothing } from "immer";
+import {isFn, isObject, Updater, Producer, fail} from "../internal"
 
-export function validateUpdater(base: any, updater: any, canReassign: boolean) {
-    if (isFn(updater)) return
-    if (isObject(updater) && isObject(base)) return
-    if (!canReassign) fail("This lens is not reassignable as it is derived")
+export function normalizeUpdater<T = unknown>(updater: Updater<T>): Producer<T> {
+    if (updater === undefined) return () => nothing
+    if (isFn(updater)) return updater
+    if (isObject(updater)) return (draft: T) => isObject(draft) ? void Object.assign(draft, updater) : updater as T
+    return () => updater as T
 }
 
-export function runUpdater(base: any, updater: any) {
-    if (isObject(updater)) Object.assign(base, updater)
-    else {
-        const res = updater(base)
-        if (res !== undefined)
-            fail(
-                "Updater functions should not return values. Did you forget curly braces?"
-            )
-    }
-}
-
-export function updaterNeedsReassignment(base: any, updater: any): boolean {
-    if (isObject(base) && isObject(updater)) return false // can use assign
-    if (isFn(updater)) return false // can run producer
-    return true
+export function avoidReturns(base: any, value: any): void {
+    if (value !== undefined && value !== base)
+        return fail("This updater function should modify the current draft, and cannot return a complety new state")
 }

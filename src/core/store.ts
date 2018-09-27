@@ -5,10 +5,9 @@ import {
     noop,
     BaseLens,
     isFn,
-    validateUpdater,
-    runUpdater,
-    updaterNeedsReassignment,
-    Lens
+    Lens,
+    normalizeUpdater,
+    avoidReturns
 } from "../internal"
 
 export interface StoreOptions {
@@ -39,25 +38,19 @@ class Store<T> extends BaseLens<T> {
 
     update(updater: any) {
         if (this.isRunningUpdate) {
-            validateUpdater(this.currentDraft, updater, false)
             // update call from an update call (for example caused by merge)
             // just reuse the current draft
-            if (!isFn(updater)) fail("Unimplemented feature")
-            else updater(this.currentDraft!)
+            if (!isFn(updater)) fail("Illegal state")
+            else avoidReturns(this.currentDraft, updater(this.currentDraft!))
             return
         }
         try {
             const baseState = this.state
-            validateUpdater(baseState, updater, true)
-            if (updaterNeedsReassignment(baseState, updater))
-                this.state = updater
-            else {
-                this.state = produce(this.state, (draft: T) => {
-                    this.isRunningUpdate = true
-                    this.currentDraft = draft
-                    runUpdater(draft, updater)
-                })
-            }
+            this.state = produce(this.state, (draft: any) => {
+                this.isRunningUpdate = true
+                this.currentDraft = draft
+                return normalizeUpdater(updater)(draft)
+            })
             if (this.state !== baseState) {
                 // skip default implementation
                 const derivations = this.derivations.slice()
