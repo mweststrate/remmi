@@ -61,6 +61,8 @@
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-typescript2": "^0.15.1",
     "rollup-plugin-uglify": "^2.0.1",
+    "rxjs": "^6.3.3",
+    "rxjs-compat": "^6.3.3",
     "ts-jest": "^22.4.6",
     "typescript": "^3.0.0",
     "uglify-es": "^3.3.6",

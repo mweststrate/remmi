@@ -1,5 +1,6 @@
 import "./core/Lens" // without this rollup will drop the side-effect free Lens file
 export * from "./core/Lens"
+export * from "./core/stream-utils"
 export * from "./core/BaseLens"
 export * from "./core/Pipe"
 export * from "./core/store"
@@ -18,3 +19,5 @@ export * from "./views/tap"
 export * from "./views/render"
 export * from "./views/invariant"
 export * from "./views/subscribe"
+export * from "./views/toStream"
+export * from "./views/fromStream"

@@ -53,9 +53,7 @@ function selectProp<T, K extends keyof T>(
                 if (newBaseValue === null || newBaseValue === undefined)
                     return undefined as any
                 if (typeof newBaseValue === "object") return newBaseValue[key]
-                return fail(
-                    `Unexpected value for field selector '${key}': '${newBaseValue}' (${typeof newBaseValue})`
-                )
+                return undefined
             },
             onUpdate(updater, next) {
                 next(draft => {

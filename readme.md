@@ -314,3 +314,4 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 * [ ] support relative paths in `select(...)`?
 * [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
 * [ ] https://docusaurus.io/
+* [ ] implement Symbol.iterator

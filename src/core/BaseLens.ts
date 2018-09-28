@@ -8,7 +8,9 @@ import {
     isLens,
     KeyedLens,
     select,
-    subscribe
+    subscribe,
+    toStream,
+    observableSymbol
 } from "../internal"
 
 let lensId = 0
@@ -65,6 +67,10 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     subscribe(handler: Handler<T>) {
         return this.do(subscribe(handler))
+    }
+
+    [observableSymbol()]() {
+        return this.do(toStream)
     }
 
     registerDerivation(lens: BaseLens) {

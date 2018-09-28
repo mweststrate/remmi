@@ -15,5 +15,7 @@ export {
     autorun,
     isLens,
     subscribe,
-    invariant
+    invariant,
+    toStream,
+    fromStream
 } from "./internal"
