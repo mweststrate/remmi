@@ -25,7 +25,7 @@ test("invariant - 1", () => {
         d.x = 5
     })
 
-    expect(aSeen).toEqual([{x: 4}, {x: 3}, {x: 5}])
+    expect(aSeen).toEqual([{x: 4}, {x: 5}])
     expect(bSeen).toEqual([{x: 5}])
 })
 
@@ -55,6 +55,6 @@ test("invariant - 2", () => {
         d.x = 5
     })
 
-    expect(aSeen).toEqual([4, 3, 5])
+    expect(aSeen).toEqual([4, 5])
     expect(bSeen).toEqual([5])
 })

@@ -55,27 +55,7 @@ class Store<T> extends BaseLens<T> {
                 // skip default implementation
                 const derivations = this.derivations.slice()
                 derivations.forEach(d => d.propagateChanged())
-                let i = 0
-                let gotException = true
-                try {
-                    // propagate updates
-                    for (i = 0; i < derivations.length; i++)
-                        derivations[i].propagateReady(true)
-                    gotException = false
-                } finally {
-                    // no catch to preserve stack
-                    if (gotException) {
-                        // got exception during update, roll back!
-                        this.state = baseState
-                        // propgate old change, again
-                        for (let j = 0; j <= i; j++) {
-                            derivations[j].propagateChanged()
-                            derivations[j].propagateReady(true) // due to revert, old state is 'new'
-                        }
-                        for (let j = i + 1; j < derivations.length; j++)
-                            derivations[j].propagateReady(false) // no change for them
-                    }
-                }
+                derivations.forEach(d => d.propagateReady(true))
             }
         } finally {
             this.currentDraft = undefined
