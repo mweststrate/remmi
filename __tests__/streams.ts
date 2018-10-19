@@ -1,5 +1,5 @@
 import { from, interval } from "rxjs"
-import { createStore, select, toStream, fromStream } from "../src/remmi";
+import { createStore, select, toStream, fromStream, connect } from "../src/remmi";
 
 test("toStream", () => {
     const user = createStore({
@@ -69,3 +69,35 @@ function delay(timeout) {
         setTimeout(resolve, timeout)
     })
 }
+
+test("connect - bidi syncs", () => {
+    const store1 = createStore({
+        x: 1
+    })
+
+    const store2 = createStore({
+        x: 1
+    })
+
+    let disposer = store1.do(connect((subscribe, sink) => {
+        subscribe(v => {
+            store2.update(v)
+        })
+
+        return store2.subscribe(v => sink(v))
+    }))
+
+    store1.update({x: 2})
+    expect(store2.value().x).toBe(2)
+
+    store2.update({x: 3})
+    expect(store1.value().x).toBe(3)
+
+    disposer()
+
+    store1.update({x: 4})
+    expect(store2.value().x).toBe(3)
+
+    store2.update({x: 5})
+    expect(store1.value().x).toBe(4)
+})

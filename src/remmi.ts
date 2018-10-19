@@ -17,5 +17,6 @@ export {
     subscribe,
     invariant,
     toStream,
-    fromStream
+    fromStream,
+    connect
 } from "./internal"

@@ -1,4 +1,4 @@
-import {Handler, Disposer, Lens} from "../internal"
+import {Lens} from "../internal"
 
 export const emptyArray = []
 Object.freeze(emptyArray)

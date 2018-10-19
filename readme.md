@@ -237,19 +237,21 @@ Convenience api's
 
 ---
 
-Recipes
+# Recipes
 
+- Read from websocket - https://codesandbox.io/s/o7y0mrvy86
+- Bidirectional sink between stores (unit test)
+- store from mouse handler - https://codesandbox.io/s/74252r73nq
+- Subscribe to reactive streams (unit tests)
 - simple example
-
 - references
-
 - testing a lens (model)
-
 - async process
-
-
 - connect to db
-
+* [ ] something cool with lithtml
+* [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
+* [ ] graphql
+* [ ] streams
 ---
 
 # Gotchas
@@ -269,49 +271,24 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 
 # Things to do
 
-## Earlier
+## Pre 1.0 features
 
-* [ ] `lens.parent` & `lens.root`
 * [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)` or `onRead` / `onWrite`
-* [ ] different invariant, revert rollback semantics?
-
-## Later
-
-* [ ] something cool with lithtml
-* [ ] something for volatile state through weak maps?
-* [ ] separate packages
-* [ ] symbol supports (primitive, observable, json etc)
-* [ ] nicer toStrings
-* [ ] custom lens creating:
-      * createLensType({ name: string, onCompute, onUpdate, onSuspend, chainable: true })
-* [x] model api
-* [x] log lens
-* [ ] funny api?
-* [ ] separate export for react bindings
-* [ ] read only lens
+* [ ] (Generated) api documentation
 * [ ] patch subscriptoin
-* [ ] reflection: show lenses base tree; patches
-* [ ] optimistic lens?
-* [ ] api for patches?
-* [ ] from resource (at root or in tree) example
 * [ ] example promise model
-* [ ] merge toStream / fromStream support?
-* [ ] fix all the tostrings
-* [ ] make toString() better reflect actual call description
-* [ ] form / to stream? / sink
 * [ ] memoized map / filter
 * [ ] `by` and `groupBy`
-* [ ] obtain parent or DI mechanism? (or use model closures for that?)
-* [ ] parallelel pipe / lenses mechanism?
-* [ ] patch stream from lens?
-* [ ] diff stream from lens?
-* [ ] be able to reject status during propagate of update?
-* [ ] merge as view?
-* [ ] computed / autorun as view?
+* [ ] form / to stream? / sink
 * [ ] deepEqual selector
 * [ ] redux pipe
 * [ ] generator pipe
-* [ ] support relative paths in `select(...)`?
-* [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
 * [ ] https://docusaurus.io/
 * [ ] implement Symbol.iterator
+
+## Post 1.0 features
+
+* [ ] separate export for react bindings
+* [ ] separate export for al lviews
+* [ ] symbol supports (primitive, observable, json etc)
+* [ ] nicer toStrings
