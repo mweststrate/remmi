@@ -282,13 +282,13 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 * [ ] form / to stream? / sink
 * [ ] deepEqual selector
 * [ ] redux pipe
-* [ ] generator pipe
 * [ ] https://docusaurus.io/
 * [ ] implement Symbol.iterator
 
 ## Post 1.0 features
 
 * [ ] separate export for react bindings
-* [ ] separate export for al lviews
-* [ ] symbol supports (primitive, observable, json etc)
+* [ ] separate export for all views?
+* [ ] symbol supports (primitive, json etc)
 * [ ] nicer toStrings
+* [ ] generators: connect(generator), toGenerator: async* fn
