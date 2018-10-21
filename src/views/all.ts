@@ -9,6 +9,7 @@ export function all<X, T extends {[key: string]: X}>(
     lens: Lens<T>
 ): Lens<(Lens<X> & {key: string})[]>
 export function all(lens: Lens<any>): Lens<any> {
+    // TODO: express all in terms of mapReduce?
     // all sublenses are always cached and reconciled until all is GC-ed itself
     let subLensCache = new Map<string, Lens>()
     return lens.do(keys).transform({
