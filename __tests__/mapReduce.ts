@@ -49,7 +49,7 @@ test("map add - cold", () => {
 })
 
 
-test.only("map add - hot", () => {
+test("map add - hot", () => {
     const events: string[] = []
 
     const store = createStore([
@@ -114,4 +114,27 @@ test.only("map add - hot", () => {
     expect(events.splice(0)).toEqual([
         "HELLO|UNIVERSE",
     ])
+})
+
+test.skip("map, update", () => {
+    const x = createStore([
+        { count: 1}
+    ])
+
+    const mapped = x.do(map(v => v))
+    const mappedFirst = mapped.select(0)
+    expect(mappedFirst.value()).toEqual({ count: 1})
+
+    mappedFirst.update(d => {
+        d.count++
+    })
+
+    expect(x.value()).toEqual([{count: 2}])
+    expect(mapped.value()).toEqual([{count: 2}])
+    expect(mappedFirst.value()).toEqual({count: 2})
+
+    mappedFirst.update(3)
+    expect(x.value()).toEqual([3])
+    expect(mapped.value()).toEqual([3])
+    expect(mappedFirst.value()).toEqual(3)
 })

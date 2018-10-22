@@ -61,17 +61,6 @@ export function mapReduce<T, U, R, C>(
                     const disposer = mappedLens.subscribe(noop)
                     entries.set(key, {rootLens, mappedLens, disposer})
                     changes.added.push([key, mappedLens.value()])
-                    // forward updater TODO: test
-                    // rootLens.update = updater => {
-                    //     baseLens.update(draft => {
-                    //         const baseState = draft[key]
-                    //         const res = normalizeUpdater(updater)(baseState)
-                    //         if (res === nothing)
-                    //             draft[key] = undefined as any
-                    //         else if (res !== undefined)
-                    //             draft[key] = res
-                    //     })
-                    // }
                 })
                 // removed entries
                 removed.forEach(([key]) => {
