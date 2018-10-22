@@ -9,6 +9,7 @@ export {
     invariant,
     isLens,
     keys,
+    map,
     mapReduce,
     merge,
     model,

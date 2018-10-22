@@ -22,6 +22,39 @@ export function _shallowEqual(ar1: any, ar2: any) {
     return true
 }
 
+export function shallowDiff<T>(
+    baseValue: T,
+    newValue: T
+): {
+    changed: string[]
+    added: string[]
+    removed: string[]
+} {
+    const changed: string[] = []
+    const added: string[] = []
+    const removed: string[] = []
+    // Optimize! For example, if base or new is empty
+    const baseKeys = new Set(Object.keys(baseValue))
+    const newKeys = new Set(Object.keys(newValue))
+    baseKeys.forEach(key => {
+        const base = baseValue[key]
+        if (newKeys.has(key)) {
+            if (newValue[key] !== base)
+                changed.push([key, base, newValue[key]])
+        } else {
+            removed.push([key, base])
+        }
+    })
+    newKeys.forEach(key => {
+        if (!baseKeys.has(key))
+            added.push([key, newValue[key]])
+    })
+
+    return {
+        changed, added, removed
+    }
+}
+
 export function once(fn: () => void): () => void {
     let executed = false
     return () => {
