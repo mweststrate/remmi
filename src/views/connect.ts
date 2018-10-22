@@ -1,5 +1,6 @@
 import {Disposer, Handler, Transformer, fail, Lens} from "../internal"
 
+// TODO: add support for suspend / resume hooks?
 export type IConnectionHandler<T = any> = (
     subscribeToStore: (callback: Handler<T>) => Disposer,
     writeToStore: (value: T) => void

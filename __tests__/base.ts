@@ -306,6 +306,52 @@ test("cleanup", () => {
             x.a.b.c += 1
         })
 
+    expect(x.derivations.length).toBe(1) // store has 1 default subsription!
+
+    const a = x.do(
+        select(x => {
+            events.push("select a")
+            return x.a
+        })
+    )
+
+    expect(x.derivations.length).toBe(1)
+    expect(a.derivations.length).toBe(0)
+
+    inc()
+
+    expect(events.splice(0)).toEqual([])
+
+    const d1 = a.subscribe(v => {
+        events.push("sub a: " + v.b.c)
+    })
+
+    expect(x.derivations.length).toBe(2)
+    expect(a.derivations.length).toBe(1)
+
+    expect(events.splice(0)).toEqual([])
+
+    inc()
+    expect(events.splice(0)).toEqual([
+        "select a",
+        "sub a: 5"
+    ])
+    d1()
+    inc()
+
+    expect(x.derivations.length).toBe(1)
+    expect(a.derivations.length).toBe(0)
+    expect(events.splice(0)).toEqual([])
+})
+
+test("cleanup", () => {
+    const events: string[] = []
+    const x = createStore({a: {b: {c: 3}}, x: 1})
+    const inc = () =>
+        x.update(x => {
+            x.a.b.c += 1
+        })
+
     const a = x.do(
         select(x => {
             debugger
@@ -333,6 +379,11 @@ test("cleanup", () => {
         events.push("sub c: " + v)
     })
 
+    expect(x.derivations.length).toBe(2)
+    expect(a.derivations.length).toBe(1)
+    expect(b.derivations.length).toBe(1)
+    expect(c.derivations.length).toBe(1)
+
     inc()
     expect(events.splice(0)).toEqual([
         "select a",
@@ -344,6 +395,12 @@ test("cleanup", () => {
     const d2 = b.subscribe(v => {
         events.push("sub b: " + JSON.stringify(v))
     })
+
+    expect(x.derivations.length).toBe(2)
+    expect(a.derivations.length).toBe(1)
+    expect(b.derivations.length).toBe(2)
+    expect(c.derivations.length).toBe(1)
+
     inc()
     expect(events.splice(0)).toEqual([
         "select a",
@@ -365,6 +422,11 @@ test("cleanup", () => {
     d2()
     inc()
     expect(events.splice(0)).toEqual([])
+
+    expect(x.derivations.length).toBe(1)
+    expect(a.derivations.length).toBe(0)
+    expect(b.derivations.length).toBe(0)
+    expect(c.derivations.length).toBe(0)
 })
 
 test("cache lenses", () => {

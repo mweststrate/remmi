@@ -28,6 +28,8 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     dirty = 0
     changedParents = 0
     state?: T
+    hot = false
+    computed = false
 
     propagateChanged() {
         if (++this.dirty === 1) {
@@ -42,6 +44,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             if (this.changedParents) {
                 this.changedParents = 0
                 const old = this.state
+                this.computed = true
                 this.state = this.recompute()
                 if (this.state !== old) {
                     this.changedDerivations!.forEach(d =>
@@ -55,12 +58,12 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         }
     }
 
-    protected get hot() {
-        return this.derivations.length > 0
-    }
-
     value() {
-        const res = this.hot ? this.state! : this.recompute()
+        const res = !this.hot
+            ? this.recompute()
+            : this.computed
+                ? this.state!
+                : (this.computed = true, this.recompute())
         notifyRead(this as any)
         return res
     }
@@ -74,16 +77,21 @@ export abstract class BaseLens<T = any> implements Lens<T> {
     }
 
     registerDerivation(lens: BaseLens) {
-        if (!this.hot) {
-            this.resume()
-        }
+        const resume = this.derivations.length === 0
         this.derivations.push(lens)
+        if (resume) {
+            this.hot = true
+        }
         const cacheKey = lens.getCacheKey()
         if (cacheKey !== undefined) {
             // not entirely happy on only caching selectors as long as the lens is hot,
             // but without a map of weak references we can otherwise not prevent leaking memory...
             this.selectorCache.set(cacheKey, lens)
         }
+        if (resume) {
+            this.resume()
+        }
+
     }
 
     removeDerivation(lens: BaseLens) {
@@ -92,7 +100,9 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         this.derivations.splice(idx, 1)
         const cacheKey = lens.getCacheKey()
         if (cacheKey !== undefined) this.selectorCache.delete(cacheKey)
-        if (!this.hot) {
+        if (this.derivations.length === 0) {
+            this.hot = false
+            this.computed = false
             this.state = undefined // prevent leaking mem
             this.suspend()
         }

@@ -273,12 +273,14 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 
 ## Pre 1.0 features
 
+* [ ] rename lens to cursor!
 * [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)` or `onRead` / `onWrite`
 * [ ] (Generated) api documentation
 * [ ] patch subscriptoin
 * [ ] example promise model
 * [ ] memoized map / filter
 * [ ] `by` and `groupBy`
+* [ ] `load(promise)`
 * [ ] form / to stream? / sink
 * [ ] deepEqual selector
 * [ ] redux pipe
@@ -292,3 +294,9 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 * [ ] symbol supports (primitive, json etc)
 * [ ] nicer toStrings
 * [ ] generators: connect(generator), toGenerator: async* fn
+
+# Summary
+
+A designer can mull over complicated designs for months. Then suddenly the simple, elegant, beautiful solution occurs to him. When it happens to you, it feels as if God is talking! And maybe He is.
+
+—Leo Frankowski

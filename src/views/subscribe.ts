@@ -20,10 +20,6 @@ class Subscription<T> extends BaseLens<undefined> {
         this.disposed = true
     }
 
-    get hot() {
-        return !this.disposed
-    }
-
     recompute() {
         if (this.disposed) fail("Illegal state")
         this.handler(this.base.value())

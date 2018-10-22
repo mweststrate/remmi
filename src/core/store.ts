@@ -53,7 +53,7 @@ class Store<T> extends BaseLens<T> {
             })
             if (this.state !== baseState) {
                 // skip default implementation
-                const derivations = this.derivations.slice()
+                const derivations = this.derivations.slice(1) // first derivation is the keep-alive noop, fine to skip
                 derivations.forEach(d => d.propagateChanged())
                 derivations.forEach(d => d.propagateReady(true))
             }
