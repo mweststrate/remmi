@@ -13,7 +13,7 @@ import {
 export type MapReduceChanges<U> = {
     added: [string, U][] // index, newValue
     removed: [string, U][] // index, oldValue
-    updated: [string, U, U][] // index, oldValue, newValue
+    updated: [string, U, U][] // index, newValue, oldValue
 }
 
 type MapReduceEntry<T, U> = {
@@ -58,7 +58,7 @@ export function mapReduce<T, U, R, C>(
                 added.forEach(([key, value]) => {
                     const rootLens = createStore(value)
                     const mappedLens = mapper(rootLens, key, context)
-                    const disposer = noop // TODO: fix mappedLens.subscribe(noop)
+                    const disposer = mappedLens.subscribe(noop)
                     entries.set(key, {rootLens, mappedLens, disposer})
                     changes.added.push([key, mappedLens.value()])
                     // forward updater TODO: test
@@ -75,18 +75,18 @@ export function mapReduce<T, U, R, C>(
                 })
                 // removed entries
                 removed.forEach(([key]) => {
-                    const entry = entries.get(key)!
-                    changes.removed.push([key, entry.mappedLens.value()])
+                    changes.removed.push([key, prevValue[key]])
                     entries.delete(key)
                 })
                 // changed entries
-                changed.forEach(([key, value]) => {
+                changed.forEach(([key, newBaseValue]) => {
+                    console.log("changed", key, newBaseValue)
                     const entry = entries.get(key)!
-                    const oldValue = entry.mappedLens.value()
-                    entry.rootLens.update(value)
-                    const newValue = entry.mappedLens.value()
-                    if (oldValue !== newValue)
-                        changes.updated.push([key, oldValue, newValue])
+                    const oldMappedValue = prevValue[key]
+                    entry.rootLens.update(newBaseValue)
+                    const newMappedValue = entry.mappedLens.value()
+                    if (oldMappedValue !== newMappedValue)
+                        changes.updated.push([key, newMappedValue, oldMappedValue])
                 })
                 // short-circuit
                 if (

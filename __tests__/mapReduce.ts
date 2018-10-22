@@ -49,7 +49,7 @@ test("map add - cold", () => {
 })
 
 
-test("map add - hot", () => {
+test.only("map add - hot", () => {
     const events: string[] = []
 
     const store = createStore([
@@ -89,5 +89,29 @@ test("map add - hot", () => {
     expect(events.splice(0)).toEqual([
         "running on 2: hi",
         "HELLO|WORLD|HI",
+    ])
+
+    store.update(d => {
+        d[1] = "universe"
+    })
+    expect(upperCased.value()).toEqual([
+        "HELLO",
+        "UNIVERSE",
+        "HI"
+    ])
+    expect(events.splice(0)).toEqual([
+        "running on 1: universe",
+        "HELLO|UNIVERSE|HI",
+    ])
+
+    store.update(d => {
+        d.length -= 1
+    })
+    expect(upperCased.value()).toEqual([
+        "HELLO",
+        "UNIVERSE"
+    ])
+    expect(events.splice(0)).toEqual([
+        "HELLO|UNIVERSE",
     ])
 })

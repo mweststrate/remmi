@@ -40,7 +40,7 @@ export function shallowDiff<T>(
         const base = baseValue[key]
         if (newKeys.has(key)) {
             if (newValue[key] !== base)
-                changed.push([key, base, newValue[key]])
+                changed.push([key, newValue[key], base])
         } else {
             removed.push([key, base])
         }

@@ -44,8 +44,8 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             if (this.changedParents) {
                 this.changedParents = 0
                 const old = this.state
-                this.computed = true
                 this.state = this.recompute()
+                this.computed = true
                 if (this.state !== old) {
                     this.changedDerivations!.forEach(d =>
                         d.propagateReady(true)
