@@ -234,14 +234,12 @@ test("filter - hot", () => {
         updates++
     })
 
-    debugger
     expect(addults.value()).toEqual([{ name: "michel", age: 33}])
     expect(calcs).toBe(1)
     expect(updates).toBe(0)
 
     b.update(d => {
         d.push({ name: "veria", age: 5 })
-        debugger
     })
     expect(addults.value()).toEqual([{ name: "michel", age: 33}])
     expect(calcs).toBe(2)
@@ -280,6 +278,70 @@ test("filter - hot", () => {
         d[0].age = 6
     })
     expect(addults.value()).toEqual([])
+    expect(calcs).toBe(7)
+    expect(updates).toBe(4)
+})
+
+test("filter - object - hot", () => {
+    let calcs = 0
+    let updates = 0
+    const b = createStore({michel:{
+        name: "michel",
+        age: 33
+    }})
+
+    const addults = b.do(filter(v => {
+        calcs++
+        return v.age > 17
+    }))
+    addults.subscribe(() => {
+        updates++
+    })
+
+    expect(addults.value()).toEqual({ michel: { name: "michel", age: 33}})
+    expect(calcs).toBe(1)
+    expect(updates).toBe(0)
+
+    b.update(d => {
+        d.veria = { name: "veria", age: 5 }
+    })
+    expect(addults.value()).toEqual({ michel: { name: "michel", age: 33}})
+    expect(calcs).toBe(2)
+    expect(updates).toBe(0)
+
+    b.update(d => {
+        d.michel.age++
+    })
+    expect(addults.value()).toEqual({ michel: { name: "michel", age: 34}})
+    expect(calcs).toBe(3)
+    expect(updates).toBe(1)
+
+    b.update(d => {
+        d.dude = { name: "dude", age: 20 }
+    })
+    expect(addults.value()).toEqual({ michel: { name: "michel", age: 34}, dude: { name: "dude", age: 20 }})
+    expect(calcs).toBe(4)
+    expect(updates).toBe(2)
+
+
+    b.update(d => {
+        d.dude.age = 5
+    })
+    expect(addults.value()).toEqual({ michel: { name: "michel", age: 34}})
+    expect(calcs).toBe(5)
+    expect(updates).toBe(3)
+
+    b.update(d => {
+        d.michel.age = 5
+    })
+    expect(addults.value()).toEqual({})
+    expect(calcs).toBe(6)
+    expect(updates).toBe(4)
+
+    b.update(d => {
+        d.michel.age = 6
+    })
+    expect(addults.value()).toEqual({})
     expect(calcs).toBe(7)
     expect(updates).toBe(4)
 })
