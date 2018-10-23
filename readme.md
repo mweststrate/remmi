@@ -252,6 +252,37 @@ Convenience api's
 * [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
 * [ ] graphql
 * [ ] streams
+
+
+### connect to a redux store
+
+```javascript
+const remmiStore = createStore(reduxStore.getState())
+
+// uni-directional sink (Redux -> Remmi)
+const cancel = remmiStore.do(
+      connect((_, sink) => reduxStore.subscribe(sink))
+)
+
+// bi-directional sink
+const cancel = remmiStore.do(
+      connect((subcribe, sink) => {
+            // dispatch action if remmiStore was updated
+            subcribe(newState => {
+                  reduxStore.dispatch({
+                        type: "REPLACE_THIS_AND_THAT",
+                        payload: newState
+                  })
+            })
+
+            // sink Redux to Remmi
+            return reduxStore.subscribe(sink)
+      })
+)
+remmiStore.select("users").subscribe(/*etc */)
+
+cancel() // stop syncing
+```
 ---
 
 # Gotchas
@@ -271,29 +302,18 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 
 # Things to do
 
-## Pre 1.0 features
+## Later
 
-* [ ] patch subscriptoin
-* [ ] example promise model
-* [ ] memoized map / filter
-* [ ] `by` and `groupBy`
-* [ ] `load(promise)`
-* [ ] form / to stream? / sink
-* [ ] deepEqual selector
-* [ ] redux pipe
-* [ ] https://docusaurus.io/
-* [ ] implement Symbol.iterator
-
-## Post 1.0 features
-
+* [ ] api to subscribe to patchespatch subscriptoin
 * [ ] separate export for react bindings
 * [ ] separate export for all views?
 * [ ] symbol supports (primitive, json etc)
 * [ ] nicer toStrings
 * [ ] generators: connect(generator), toGenerator: async* fn
+* [ ] fix optimization and todo comments
 
 # Summary
 
 A designer can mull over complicated designs for months. Then suddenly the simple, elegant, beautiful solution occurs to him. When it happens to you, it feels as if God is talking! And maybe He is.
 
-—Leo Frankowski
+— Leo Frankowski
