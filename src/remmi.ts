@@ -4,6 +4,7 @@ export {
     autorun,
     connect,
     createStore,
+    filter,
     fork,
     fromStream,
     invariant,

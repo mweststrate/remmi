@@ -21,6 +21,7 @@ type MapReduceEntry<T, U> = {
     disposer: Disposer
 }
 
+// TODO: make index a number for arrays?
 export function mapReduce<T, U, S extends T[] | KeyValueMap<T>, R>(
     mapper: (lens: Lens<T>, key: string) => Lens<U>,
     reducer: (previousValue: R, changes: MapReduceChanges<U>, sourceValue: S) => R
@@ -69,7 +70,6 @@ export function mapReduce<T, U, S extends T[] | KeyValueMap<T>, R>(
                 })
                 // changed entries
                 changed.forEach(([key, newBaseValue]) => {
-                    console.log("changed", key, newBaseValue)
                     const entry = entries.get(key)!
                     const oldMappedValue = entry.mappedLens.value()
                     entry.rootLens.update(newBaseValue)

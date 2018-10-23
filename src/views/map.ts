@@ -1,6 +1,5 @@
 import { Transformer, mapReduce, Lens, select, KeyValueMap } from "../internal";
 
-// TODO: make index a number for arrays?
 export function map<A, B>(
     mapper: (value: A, index: string) => B
 ): Transformer<A[], Lens<B[]>>;

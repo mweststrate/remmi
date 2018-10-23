@@ -63,7 +63,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             ? this.recompute()
             : this.computed
                 ? this.state!
-                : (this.computed = true, this.recompute())
+                : (this.computed = true, this.state = this.recompute())
         notifyRead(this as any)
         return res
     }
