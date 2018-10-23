@@ -1,5 +1,7 @@
 import {Lens} from "../internal"
 
+export type KeyValueMap<T> = { [key: string]: T }
+
 export const emptyArray = []
 Object.freeze(emptyArray)
 
@@ -22,17 +24,29 @@ export function _shallowEqual(ar1: any, ar2: any) {
     return true
 }
 
+export type DiffResult<T> = {
+        changed: [string, T, T][]
+        added: [string, T][]
+        removed: [string, T][]
+}
+
 export function shallowDiff<T>(
-    baseValue: T,
-    newValue: T
-): {
-    changed: string[]
-    added: string[]
-    removed: string[]
-} {
-    const changed: string[] = []
-    const added: string[] = []
-    const removed: string[] = []
+    baseValue: T[],
+    newValue: T[]
+): DiffResult<T>
+export function shallowDiff<T>(
+    baseValue: KeyValueMap<T>,
+    newValue: KeyValueMap<T>
+): DiffResult<T>
+export function shallowDiff<T>(
+    baseValue: KeyValueMap<T>,
+    newValue: KeyValueMap<T>
+): DiffResult<T> {
+    const diff: DiffResult<T> = {
+        changed: [],
+        removed: [],
+        added: []
+    }
     // Optimize! For example, if base or new is empty
     const baseKeys = new Set(Object.keys(baseValue))
     const newKeys = new Set(Object.keys(newValue))
@@ -40,19 +54,17 @@ export function shallowDiff<T>(
         const base = baseValue[key]
         if (newKeys.has(key)) {
             if (newValue[key] !== base)
-                changed.push([key, newValue[key], base])
+                diff.changed.push([key, newValue[key], base])
         } else {
-            removed.push([key, base])
+            diff.removed.push([key, base])
         }
     })
     newKeys.forEach(key => {
         if (!baseKeys.has(key))
-            added.push([key, newValue[key]])
+            diff.added.push([key, newValue[key]])
     })
 
-    return {
-        changed, added, removed
-    }
+    return diff
 }
 
 export function once(fn: () => void): () => void {

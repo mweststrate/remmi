@@ -10,7 +10,6 @@ function keySelector(value: any): any[] {
     return emptyArray
 }
 
-export function keys<T>(lens: Lens<T>): Lens<(keyof T)[]>
-export function keys(lens: Lens): Lens {
-    return lens.do(select(keySelector as any), shallowEqual)
+export function keys<T>(lens: Lens<T>): Lens<(keyof T)[]> {
+    return lens.do(select(keySelector), shallowEqual)
 }

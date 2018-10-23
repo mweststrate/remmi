@@ -25,7 +25,7 @@ export function fork(recordActions = false) {
                 description: "recorder(true)",
                 onUpdate(updater, next) {
                     if (recording) recordedUpdates.push(updater)
-                    next(updater)
+                    next(updater as any)
                 }
             }),
             {

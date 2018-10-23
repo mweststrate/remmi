@@ -273,9 +273,6 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 
 ## Pre 1.0 features
 
-* [ ] rename lens to cursor!
-* [ ] create store from externally stored state e.g. (`createStore(() => this.state, this.setState)` or `onRead` / `onWrite`
-* [ ] (Generated) api documentation
 * [ ] patch subscriptoin
 * [ ] example promise model
 * [ ] memoized map / filter

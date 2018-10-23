@@ -116,6 +116,70 @@ test("map add - hot", () => {
     ])
 })
 
+
+test("map object - add - hot", () => {
+    const events: string[] = []
+
+    const store = createStore<any>({
+        greet: "hello"
+    })
+
+    const upperCased = store.do(map((value: string, index) => {
+        events.push(`running on ${index}: ${value}`)
+        return value.toUpperCase()
+    }))
+
+    expect(events.splice(0)).toEqual([
+
+    ])
+
+    upperCased.subscribe((v) => {
+        events.push(JSON.stringify(v))
+    })
+
+    store.update(d => {
+        d.who = "world"
+    })
+    expect(upperCased.value()).toEqual({
+        greet: "HELLO",
+        who: "WORLD",
+    })
+    expect(events.splice(0)).toEqual([
+        "running on greet: hello",
+        "running on who: world",
+        "{\"greet\":\"HELLO\",\"who\":\"WORLD\"}",
+    ])
+
+    store.update(d => {
+        d.x = "hi"
+    })
+    expect(upperCased.value()).toEqual(
+        {"greet": "HELLO", "who": "WORLD", "x": "HI"}
+    )
+    expect(events.splice(0)).toEqual([
+        "running on x: hi",
+        "{\"greet\":\"HELLO\",\"who\":\"WORLD\",\"x\":\"HI\"}",
+    ])
+
+    store.update(d => {
+        d.who = "universe"
+    })
+    expect(upperCased.value()).toEqual({"greet": "HELLO", "who": "UNIVERSE", "x": "HI"})
+    expect(events.splice(0)).toEqual([
+        "running on who: universe",
+        "{\"greet\":\"HELLO\",\"who\":\"UNIVERSE\",\"x\":\"HI\"}",
+    ])
+
+    store.update(d => {
+        delete d.greet
+    })
+    expect(upperCased.value()).toEqual({"who": "UNIVERSE", "x": "HI"})
+    expect(events.splice(0)).toEqual([
+        "{\"who\":\"UNIVERSE\",\"x\":\"HI\"}",
+    ])
+})
+
+
 test.skip("map, update", () => {
     const x = createStore([
         { count: 1}
