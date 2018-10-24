@@ -1,6 +1,5 @@
 import { createStore, model, select } from "remmi"
 
-import {createBox} from './box';
 import {randomUuid} from '../utils';
 
 export function createBoxesStore(initialState = {
@@ -8,36 +7,35 @@ export function createBoxesStore(initialState = {
     arrows: {},
     selection: null
 }) {
-    const store = createStore(initialState).do(model(BoxesStore))
+    const storeCursor = createStore(initialState)
 
-    const id1 = store.createBox("Roosendaal", 100, 100)
-    const id2 = store.createBox("Amsterdam", 650, 300)
-    const id3 = store.createBox("Prage", 150, 300)
-    store.createArrow(id1, id2)
-    store.createArrow(id2, id3)
+    const id1 = createBox(storeCursor, "Roosendaal", 100, 100)
+    const id2 = createBox(storeCursor, "Amsterdam", 650, 300)
+    const id3 = createBox(storeCursor, "Prage", 150, 300)
+    createArrow(storeCursor, id1, id2)
+    createArrow(storeCursor, id2, id3)
 
-    return store
+    return storeCursor
 }
 
-function BoxesStore(lens) {
-    return {
-        arrows: lens.select("arrows"),
-        boxes: lens.select("boxes"),
-        createBox(name, x, y) {
-            lens.update(d => {
-                const id = randomUuid()
-                d.boxes[id] = { id, name, x, y }
-            })
-        },
-        createArrow(from, to) {
-            lens.update(d => {
-                const id = randomUuid()
-                d.arrows[id] = { id, from, to }
-            })
-        }
-    }
+export function createBox(storeCursor, name, x, y) {
+    const id = randomUuid()
+    storeCursor.update(d => {
+        d.boxes[id] = { id, name, x, y }
+    })
+    return id
 }
 
+export function createArrow(storeCursor, from, to) {
+    storeCursor.update(d => {
+        const id = randomUuid()
+        d.arrows[id] = { id, from, to }
+    })
+}
+
+export function boxWidth(box) {
+    return box.name.length * 15
+}
 
 // /**
 //     Serialize this store to json

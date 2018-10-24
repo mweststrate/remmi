@@ -1,4 +1,4 @@
-import {Lens, keys} from "../internal"
+import {Lens, keys, fail} from "../internal"
 
 const All = {All: true}
 

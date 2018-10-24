@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import { select, renderAll } from 'remmi';
 
-import Box from '../stores/box';
 import {randomUuid} from '../utils';
 
 import BoxView from './box-view';
@@ -18,11 +17,11 @@ class Canvas extends Component {
                     onClick={this.onCanvasClick}
                 >
                     <svg>
-                        {/* { store.arrows.do(renderAll((arrow, arrow$) =>
+                        { store.do(select("arrows"), renderAll((arrow, arrow$) =>
                             <ArrowView arrow={arrow} arrow$={arrow$} store={store} key={arrow.id} />
-                        )) } */}
+                        )) }
                     </svg>
-                    { store.boxes.do(renderAll((box, box$) =>
+                    { store.do(select("boxes"), renderAll((box, box$) =>
                         <BoxView box={box} box$={box$} key={box.id} />
                     )) }
                 </div>

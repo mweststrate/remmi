@@ -4,7 +4,8 @@ import {
     Lens,
     Disposer,
     Handler,
-    BaseLens
+    BaseLens,
+    fail
 } from "../internal"
 
 class Subscription<T> extends BaseLens<undefined> {
@@ -21,7 +22,7 @@ class Subscription<T> extends BaseLens<undefined> {
     }
 
     recompute() {
-        if (this.disposed) fail("Illegal state")
+        if (this.disposed) return undefined
         this.handler(this.base.value())
         return undefined
     }

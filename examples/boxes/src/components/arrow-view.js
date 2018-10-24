@@ -3,12 +3,12 @@ import React, {Component} from 'react';
 
 class ArrowView extends Component {
     render() {
-        const {store$, arrow$} = this.props
-        return merge(store$, arrow$).do(
-            render(([store, arrow]) => {
-                console.log("rendering arrow " + arrow.id)
-                const from = store.boxes.find(b => b.id === arrow.from)
-                const to = store.boxes.find(b => b.id === arrow.to)
+        const {store, arrow, arrow$} = this.props
+        const boxes = store.select("boxes")
+        console.dir(arrow)
+        return merge(arrow$, boxes.select(arrow.from), boxes.select(arrow.to)).do(
+            render(([arrow, from, to]) => {
+                console.log("rendering arrowz " + arrow.id)
                 const [x1, y1, x2, y2] = [
                     from.x, //+ from.width/ 2,
                     from.y + 30,

@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import {DraggableCore} from 'react-draggable';
 
+import {boxWidth} from "../stores/domain-state"
+
 class BoxView extends Component {
     render() {
         const {box} = this.props;
@@ -9,7 +11,7 @@ class BoxView extends Component {
             <DraggableCore onDrag={this.handleDrag}>
                 <div
                     style={{
-                        width: box.width,
+                        width: boxWidth(box),
                         left: box.x,
                         top: box.y
                     }}

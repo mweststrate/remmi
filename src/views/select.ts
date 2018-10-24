@@ -11,6 +11,7 @@ import {
 } from "../internal"
 
 export function select<T, R>(selector: Selector<T, R>): Transformer<T, Lens<R>>
+// TODO: support multiple keys!
 export function select<T, K extends keyof T>(
     selector: K
 ): Transformer<T, KeyedLens<T[K], K>>

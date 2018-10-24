@@ -206,6 +206,10 @@ API.md?
   - Redux
 
 
+# Tips & Trics
+
+Create transactions using update
+
 # API
 
 TODO: generate and link from JSDocs
