@@ -302,6 +302,8 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 
 # Things to do
 
+* [ ] `.all()`, `.renderAll()` and `.mapReduce()` should detect splices (and not pass keys for arrays to handlers).
+
 ## Later
 
 * [ ] api to subscribe to patchespatch subscriptoin

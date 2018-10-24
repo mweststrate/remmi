@@ -27,7 +27,6 @@ export function mapReduce<T, U, S extends T[] | KeyValueMap<T>, R>(
     reducer: (previousValue: R, changes: MapReduceChanges<U>, sourceValue: S) => R
 ): Transformer<S, Lens<R>>{
     return baseLens => {
-        // all sublenses are always cached and reconciled until all is GC-ed itself
         const entries = new Map<string, MapReduceEntry<T, U>>()
         let prevBaseValue: any
         return baseLens.transform({

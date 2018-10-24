@@ -1,6 +1,6 @@
 {
   "name": "remmi",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Fresh take on state management",
   "main": "dist/remmi.js",
   "umd:main": "dist/remmi.umd.js",
