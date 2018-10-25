@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { select, renderAll } from 'remmi';
+import { select, renderAll, merge, render } from 'remmi';
 
 import {randomUuid} from '../utils';
 
@@ -11,18 +11,19 @@ import ArrowView from './arrow-view';
 class Canvas extends Component {
     render() {
         const {store} = this.props;
+        const boxesC = store.select("boxes")
+        const selectionC = store.select("selection")
         return (
             <div className="app">
                 <div className="canvas"
                     onClick={this.onCanvasClick}
                 >
                     <svg>
-                        { store.do(select("arrows"), renderAll((arrow, arrow$) =>
-                            <ArrowView arrow={arrow} arrow$={arrow$} store={store} key={arrow.id} />
+                        { store.do(select("arrows"), renderAll((arrow, arrowC) =>
+                            <ArrowView arrow={arrow} arrowC={arrowC} boxesC={boxesC} />
                         )) }
                     </svg>
-                    { store.do(select("boxes"), renderAll((box, box$) =>
-                        <BoxView box={box} box$={box$} key={box.id} />
+                    { boxesC.do(renderAll((box, box$) => <BoxView box={box} box$={box$} store={store} />
                     )) }
                 </div>
                 {/* <Sidebar store={store} /> */}

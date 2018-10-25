@@ -64,7 +64,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
             : this.computed
                 ? this.state!
                 : (this.computed = true, this.state = this.recompute())
-        notifyRead(this as any)
+        notifyRead(this as any) // TODO: this one should only be called if `.value()` is called directly from Tracker fn, not indirectly
         return res
     }
 

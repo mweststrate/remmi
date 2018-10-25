@@ -30,7 +30,7 @@ Note that "view" on the original state can be interpreted here in it's broadest 
 * First class support for async processes
 * Mostly simple function composition
 * Extremely extensible, please share and publish your own transformers!
-* `this`less
+* `this`-less
 * `null` safe (you can create, compose, chain lenses even when there is no backing value)
 
 
