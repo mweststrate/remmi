@@ -1,20 +1,38 @@
-import React, {Component} from 'react';
-import {observer} from 'mobx-react';
+import {select, render} from "remmi"
+import React, {Component} from "react"
 
-@observer
 class Sidebar extends Component {
     render() {
-        const {selection} = this.props.store;
-        return selection
-            ? <div className="sidebar sidebar-open">
-                <input onChange={this.onChange} value={selection.name} />
-              </div>
-            : <div className="sidebar" />;
+        const {store} = this.props
+        return store.do(
+            select("selection"),
+            render(
+                selectionId =>
+                    selectionId ? (
+                        store.do(
+                            select("boxes"),
+                            select(selectionId),
+                            render(box => (
+                                <div className="sidebar sidebar-open">
+                                    <input
+                                        onChange={this.onChange}
+                                        value={box.name}
+                                    />
+                                </div>
+                            ))
+                        )
+                    ) : (
+                        <div className="sidebar" />
+                    )
+            )
+        )
     }
 
-    onChange = (e) => {
-        this.props.store.selection.name = e.target.value;
+    onChange = e => {
+        this.props.store.update(d => {
+            if (d.selection) d.boxes[d.selection].name = e.target.value
+        })
     }
 }
 
-export default Sidebar;
+export default Sidebar

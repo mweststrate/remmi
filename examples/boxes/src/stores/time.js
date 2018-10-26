@@ -1,25 +1,32 @@
-import {autorun, transaction} from 'mobx';
 import store, {serializeState, deserializeState} from './domain-state';
 
 var states = [];
 var currentFrame = -1;
+let undoing = false
 
-autorun(() => {
-    states.push(serializeState(store));
-});
-
-export function previousState() {
-    if (currentFrame === -1)
-        currentFrame = states.length;
-    currentFrame--;
-    transaction(() =>
-        deserializeState(store, states[currentFrame])
-    );
+export function trackChanges(store) {
+    store.subscribe(state => {
+        if (!undoing) {
+            states.splice(++currentFrame)
+            states.push(state)
+        }
+    })
 }
 
-export function nextState() {
-    currentFrame++;
-    transaction(() =>
-        deserializeState(store, states[currentFrame])
-    );
+export function previousState(store) {
+    if (currentFrame > 1) {
+        currentFrame--;
+        undoing = true
+        store.update(() => states[currentFrame])
+        undoing = false
+    }
+}
+
+export function nextState(store) {
+    if (currentFrame < states.length -1) {
+        currentFrame++;
+        undoing = true
+        store.update(() => states[currentFrame])
+        undoing = false
+    }
 }
