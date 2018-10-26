@@ -1,6 +1,8 @@
 import React, {Component} from "react"
 import {select, renderAll} from "remmi"
+import { useCursor } from "../utils"
 
+import {createArrow,  createBox } from "../stores/domain-state"
 import BoxView from "./box-view"
 import ArrowView from "./arrow-view"
 import Sidebar from './sidebar';
@@ -39,16 +41,14 @@ class Canvas extends Component {
 
     onCanvasClick = e => {
         const {store} = this.props
-        if (e.ctrlKey === false) {
-            store.selection = null
-        } else {
-            const newBox = store.addBox(
-                "Hi.",
-                e.clientX - 50,
-                e.clientY - 20,
-                store.selection
-            )
-            store.selection = newBox
+        if (e.ctrlKey === true && store.value().selection) {
+            store.update(draft => {
+                const id = createBox(store, "Hi.",  e.clientX - 50,
+                    e.clientY - 20)
+                createArrow(store, store.value().selection, id)
+                draft.selection = id
+            })
+
         }
     }
 }
