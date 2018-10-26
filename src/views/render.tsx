@@ -102,5 +102,15 @@ export function renderAll(
     return (lens: Lens<any>) => <RenderLenses lens={lens} renderer={renderer} />
 }
 
-// TODO: hooks!
-// useCursor
+export function useCursor(cursor) {
+    function updater(value) {
+        setValue(value)
+    }
+    // subscribe to the cursor
+    const lensSubscription = React.useMemo(() => cursor.subscribe(updater), [cursor])
+    // unsubscribe the hook
+    React.useEffect(() => lensSubscription, [])
+    // compute value (after subscribing to avoid re-evaluation!)
+    const [value, setValue] = React.useState(() => cursor.value())
+    return value
+}

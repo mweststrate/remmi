@@ -22,4 +22,5 @@ export {
     subscribe,
     tap,
     toStream,
+    useCursor
 } from "./internal"

@@ -306,10 +306,13 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 
 # Things to do
 
-* [ ] `.all()`, `.renderAll()` and `.mapReduce()` should detect splices (and not pass keys for arrays to handlers).
+* [ ] rename everything to cursor
+* [ ] use hooks
+* [ ] kill models?
 
 ## Later
 
+* [ ] `.all()`, `.renderAll()` and `.mapReduce()` should detect splices (and not pass keys for arrays to handlers).
 * [ ] api to subscribe to patchespatch subscriptoin
 * [ ] separate export for react bindings
 * [ ] separate export for all views?

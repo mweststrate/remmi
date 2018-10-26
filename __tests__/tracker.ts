@@ -33,3 +33,74 @@ test("tracker 1", () => {
     })
     expect(events).toEqual([7, 8, 10])
 })
+
+test("tracker 2", () => {
+    const s = createStore([{x: 3]])
+    const events: number[] = []
+
+    const d = autorun(() => {
+        events.push(s.select(0).select("x").value())
+    })
+
+    expect(events).toEqual([3])
+
+    s.update(d => {
+        d[0].x = 4
+    })
+
+    expect(events).toEqual([3, 4])
+
+    s.update(d => {
+        d.push({ x: 1 })
+    })
+
+    expect(events).toEqual([3, 4])
+
+    s.update(d => {
+        d.shift()
+    })
+
+    expect(events).toEqual([3, 4, 1])
+
+    s.update(d => {
+        d[0].y = 2
+    })
+
+    expect(events).toEqual([3, 4, 1])
+})
+
+
+test("tracker 2", () => {
+    const s = createStore([{x: 3]])
+    const events: number[] = []
+    const x = s.select(0).select("x")
+    const d = autorun(() => {
+        events.push(x.value())
+    })
+
+    expect(events).toEqual([3])
+
+    s.update(d => {
+        d[0].x = 4
+    })
+
+    expect(events).toEqual([3, 4])
+
+    s.update(d => {
+        d.push({ x: 1 })
+    })
+
+    expect(events).toEqual([3, 4])
+
+    s.update(d => {
+        d.shift()
+    })
+
+    expect(events).toEqual([3, 4, 1])
+
+    s.update(d => {
+        d[0].y = 2
+    })
+
+    expect(events).toEqual([3, 4, 1])
+})
