@@ -1,4 +1,4 @@
-import { createStore, model, select } from "remmi"
+import { createStore } from "remmi"
 
 import {randomUuid} from '../utils';
 

@@ -10,7 +10,6 @@ class Canvas extends Component {
     render() {
         const {store} = this.props
         const boxesC = store.select("boxes")
-        const selectionC = store.select("selection")
         return (
             <div className="app">
                 <div className="canvas" onClick={this.onCanvasClick}>

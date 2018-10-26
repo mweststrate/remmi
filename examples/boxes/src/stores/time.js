@@ -1,7 +1,5 @@
-import store, {serializeState, deserializeState} from './domain-state';
-
-var states = [];
-var currentFrame = -1;
+const states = [];
+let currentFrame = -1;
 let undoing = false
 
 export function trackChanges(store) {
