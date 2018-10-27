@@ -12,6 +12,7 @@ class Canvas extends Component {
     render() {
         const {store} = this.props
         const boxesC = store.select("boxes")
+        const selection = store.select(s => s.boxes[s.selection])
         return (
             <div className="app">
                 <div className="canvas" onClick={this.onCanvasClick}>
@@ -33,7 +34,7 @@ class Canvas extends Component {
                         ))
                     )}
                 </div>
-                <Sidebar store={store} />
+                <Sidebar selection={selection} />
                 <FunStuff store={store} />
             </div>
         )

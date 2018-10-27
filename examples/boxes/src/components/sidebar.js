@@ -3,24 +3,14 @@ import React, {Component} from "react"
 
 class Sidebar extends Component {
     render() {
-        const {store} = this.props
-        return store.do(
-            select("selection"),
+        const {selection} = this.props
+        return selection.do(
             render(
-                selectionId =>
-                    selectionId ? (
-                        store.do(
-                            select("boxes"),
-                            select(selectionId),
-                            render(box => (
-                                <div className="sidebar sidebar-open">
-                                    <input
-                                        onChange={this.onChange}
-                                        value={box.name}
-                                    />
-                                </div>
-                            ))
-                        )
+                box =>
+                    box ? (
+                        <div className="sidebar sidebar-open">
+                            <input onChange={this.onChange} value={box.name} />
+                        </div>
                     ) : (
                         <div className="sidebar" />
                     )
@@ -29,8 +19,8 @@ class Sidebar extends Component {
     }
 
     onChange = e => {
-        this.props.store.update(d => {
-            if (d.selection) d.boxes[d.selection].name = e.target.value
+        this.props.selection.update(draft => {
+            draft.name = e.target.value
         })
     }
 }

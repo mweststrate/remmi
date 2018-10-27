@@ -11,7 +11,7 @@ export function createBoxesStore(initialState = {
 
     const id1 = createBox(storeCursor, "Roosendaal", 100, 100)
     const id2 = createBox(storeCursor, "Amsterdam", 650, 300)
-    const id3 = createBox(storeCursor, "Prage", 150, 300)
+    const id3 = createBox(storeCursor, "Prague", 150, 300)
     createArrow(storeCursor, id1, id2)
     createArrow(storeCursor, id2, id3)
 
