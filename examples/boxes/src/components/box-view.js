@@ -1,10 +1,10 @@
 import {merge, render} from "remmi"
-import React, {Component} from "react"
+import React, {PureComponent} from "react"
 import {DraggableCore} from "react-draggable"
 
 import {boxWidth} from "../stores/domain-state"
 
-class BoxView extends Component {
+class BoxView extends PureComponent {
     render() {
         const {box, box$, store} = this.props
         const isSelected = merge(box$, store.select("selection")).select(

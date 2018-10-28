@@ -1,7 +1,7 @@
 import {select, render} from "remmi"
-import React, {Component} from "react"
+import React, {PureComponent} from "react"
 
-class Sidebar extends Component {
+class Sidebar extends PureComponent {
     render() {
         const {selection} = this.props
         return selection.do(

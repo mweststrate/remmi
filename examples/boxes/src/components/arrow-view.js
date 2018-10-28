@@ -1,6 +1,6 @@
 import {merge, render, autoRender } from "remmi"
 import { useCursor } from "../utils"
-import React from 'react';
+import React, {memo} from 'react';
 import { boxWidth } from "../stores/domain-state"
 
 // // With autoRender:
@@ -23,7 +23,7 @@ import { boxWidth } from "../stores/domain-state"
 // }
 
 
-export default function ArrowView({arrowC, boxesC}) {
+export default memo(function ArrowView({arrowC, boxesC}) {
     const arrow = useCursor(arrowC)
     const from = useCursor(boxesC.select(arrow.from))
     const to = useCursor(boxesC.select(arrow.to))
@@ -37,4 +37,4 @@ export default function ArrowView({arrowC, boxesC}) {
     return <path className="arrow"
         d={`M${x1} ${y1} L${x2} ${y2}`}
     />
-}
+})
