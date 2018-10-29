@@ -1,8 +1,8 @@
 import {nothing} from "immer"
 import {
-    Lens,
+    Cursor,
     Selector,
-    BaseLens,
+    BaseCursor,
     Transformer,
     fail,
     KeyedLens,
@@ -10,13 +10,13 @@ import {
     avoidReturns
 } from "../internal"
 
-export function select<T, R>(selector: Selector<T, R>): Transformer<T, Lens<R>>
+export function select<T, R>(selector: Selector<T, R>): Transformer<T, Cursor<R>>
 // TODO: support multiple keys!
 export function select<T, K extends keyof T>(
     selector: K
 ): Transformer<T, KeyedLens<T[K], K>>
 export function select(selector: any): any {
-    return function(lens: BaseLens): Lens {
+    return function(lens: BaseCursor): Cursor {
         if (typeof selector === "function") return selectFn(lens, selector)
         if (typeof selector === "string" || typeof selector === "number")
             return selectProp(lens, "" + selector)
@@ -27,7 +27,7 @@ export function select(selector: any): any {
     }
 }
 
-function selectFn<T, R>(lens: Lens<T>, selector: Selector<T, R>): Lens<R> {
+function selectFn<T, R>(lens: Cursor<T>, selector: Selector<T, R>): Cursor<R> {
     return lens.transform({
         cacheKey: selector,
         onNext(newBaseValue) {
@@ -44,7 +44,7 @@ function selectFn<T, R>(lens: Lens<T>, selector: Selector<T, R>): Lens<R> {
 }
 
 function selectProp<T, K extends keyof T>(
-    lens: Lens<T>,
+    lens: Cursor<T>,
     key: K
 ): KeyedLens<T[K], K> {
     return Object.assign(

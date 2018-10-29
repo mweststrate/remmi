@@ -1,23 +1,23 @@
-import {Lens, keys, fail} from "../internal"
+import {Cursor, keys, fail} from "../internal"
 
 const All = {All: true}
 
 export function all<X, T extends X[]>(
-    lens: Lens<T>
-): Lens<(Lens<X> & {key: number})[]>
+    lens: Cursor<T>
+): Cursor<(Cursor<X> & {key: number})[]>
 export function all<X, T extends {[key: string]: X}>(
-    lens: Lens<T>
-): Lens<(Lens<X> & {key: string})[]>
-export function all(lens: Lens<any>): Lens<any> {
+    lens: Cursor<T>
+): Cursor<(Cursor<X> & {key: string})[]>
+export function all(lens: Cursor<any>): Cursor<any> {
     // TODO: express all in terms of mapReduce?
     // all sublenses are always cached and reconciled until all is GC-ed itself
-    let subLensCache = new Map<string, Lens>()
+    let subLensCache = new Map<string, Cursor>()
     return lens.do(keys).transform({
         cacheKey: All,
         onNext(nextValue: any) {
             // source.keys() already includes shallow comparision, so
             // base value has always introduced or removed entries here
-            const newCache = new Map<string, Lens>()
+            const newCache = new Map<string, Cursor>()
             const lenses = nextValue.map((key: any) => {
                 const subLens = subLensCache.get(key) || lens.select(key)
                 newCache.set(key, subLens)

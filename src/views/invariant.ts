@@ -1,9 +1,9 @@
-import {stringifyFunction, Transformer, Lens, Disposer, fail} from "../internal"
+import {stringifyFunction, Transformer, Cursor, Disposer, fail} from "../internal"
 
 export function invariant<T>(
     predicate: (value: T) => boolean | string
 ): Transformer<T, Disposer> {
-    return (lens: Lens<T>) =>
+    return (lens: Cursor<T>) =>
         lens.subscribe(value => {
             const res = predicate(value)
             if (res === false)

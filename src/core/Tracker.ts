@@ -1,6 +1,6 @@
 import {
     merge,
-    Lens,
+    Cursor,
     Merge,
     _shallowEqual,
     noop,
@@ -8,20 +8,20 @@ import {
     createStore
 } from "../internal"
 
-let readListener: undefined | ((lens: Lens) => void)
+let readListener: undefined | ((lens: Cursor) => void)
 
-export function notifyRead(lens: Lens) {
+export function notifyRead(lens: Cursor) {
     if (readListener) readListener(lens) // optimize
 }
 
 export class Tracker {
-    merge: Lens<any> = new Merge([])
+    merge: Cursor<any> = new Merge([])
     disposeMerge: Disposer = this.merge.subscribe(noop)
 
     constructor(private onInvalidate: () => void) {}
 
     public track<T>(fn: () => T): T {
-        const dependencies = new Set<Lens>()
+        const dependencies = new Set<Cursor>()
         const prevListener = readListener
         readListener = dependencies.add.bind(dependencies)
         try {
@@ -30,7 +30,7 @@ export class Tracker {
             const newDeps = Array.from(dependencies)
             if (!_shallowEqual(newDeps, this.getDependencies())) {
                 // don't create merge if only one dep
-                const nextMerge: Lens<any> =
+                const nextMerge: Cursor<any> =
                     newDeps.length === 0
                         ? (console.warn(
                               "[immer] The Tracker did not use any lenses"
@@ -52,7 +52,7 @@ export class Tracker {
         this.disposeMerge()
     }
 
-    public getDependencies(): Lens[] {
+    public getDependencies(): Cursor[] {
         return this.merge instanceof Merge ? this.merge.bases : [this.merge]
     }
 }

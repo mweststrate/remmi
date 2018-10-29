@@ -3,9 +3,9 @@ import produce from "immer"
 import {
     fail,
     noop,
-    BaseLens,
+    BaseCursor,
     isFn,
-    Lens,
+    Cursor,
     normalizeUpdater,
     avoidReturns
 } from "../internal"
@@ -16,7 +16,7 @@ export interface StoreOptions {
 
 let storeId = 0
 
-class Store<T> extends BaseLens<T> {
+class Store<T> extends BaseCursor<T> {
     state: T
     private currentDraft?: T
     private isRunningUpdate = false
@@ -87,6 +87,6 @@ class Store<T> extends BaseLens<T> {
 export function createStore<T>(
     initialValue: T,
     options?: StoreOptions
-): Lens<T> {
+): Cursor<T> {
     return new Store(initialValue, options)
 }

@@ -1,11 +1,11 @@
-import { Transformer, mapReduce, Lens, select, KeyValueMap } from "../internal";
+import { Transformer, mapReduce, Cursor, select, KeyValueMap } from "../internal";
 
 export function map<A, B>(
     mapper: (value: A, index: string) => B
-): Transformer<A[], Lens<B[]>>;
+): Transformer<A[], Cursor<B[]>>;
 export function map<A, B>(
     mapper: (value: A, index: string) => B
-): Transformer<KeyValueMap<A>, Lens<KeyValueMap<B>>>;
+): Transformer<KeyValueMap<A>, Cursor<KeyValueMap<B>>>;
 export function map<A, B>(
     mapper: (value: A, index: string) => B
 ): Transformer<any, any> {

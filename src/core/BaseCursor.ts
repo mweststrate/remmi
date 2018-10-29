@@ -1,11 +1,11 @@
 import {
     fail,
-    Lens,
+    Cursor,
     Handler,
     notifyRead,
     TransformConfig,
     Pipe,
-    isLens,
+    isCursor,
     KeyedLens,
     select,
     subscribe,
@@ -15,14 +15,14 @@ import {
 
 let lensId = 0
 
-export abstract class BaseLens<T = any> implements Lens<T> {
-    readonly selectorCache = new Map<any, BaseLens>()
+export abstract class BaseCursor<T = any> implements Cursor<T> {
+    readonly selectorCache = new Map<any, BaseCursor>()
 
     // optimization: initialize fields as empty
     // optimization: no forEach
-    readonly derivations: BaseLens[] = []
-    readonly parents: BaseLens[] = []
-    changedDerivations?: BaseLens[]
+    readonly derivations: BaseCursor[] = []
+    readonly parents: BaseCursor[] = []
+    changedDerivations?: BaseCursor[]
 
     lensId = ++lensId
     dirty = 0
@@ -76,7 +76,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         return this.do(toStream)
     }
 
-    registerDerivation(lens: BaseLens) {
+    registerDerivation(lens: BaseCursor) {
         const resume = this.derivations.length === 0
         this.derivations.push(lens)
         if (resume) {
@@ -94,7 +94,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     }
 
-    removeDerivation(lens: BaseLens) {
+    removeDerivation(lens: BaseCursor) {
         const idx = this.derivations.indexOf(lens)
         if (idx === -1) fail("Illegal state") // todo fail
         this.derivations.splice(idx, 1)
@@ -110,7 +110,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
 
     do(...things: any[]): any {
         return things.reduce((acc, transformer, index) => {
-            if (!isLens(acc))
+            if (!isCursor(acc))
                 return fail(
                     `The transformer at argument ${index -
                         1} of '.do()' should produce a lens, but it returned a: (${typeof acc}) '${acc}`
@@ -128,7 +128,7 @@ export abstract class BaseLens<T = any> implements Lens<T> {
         return `Lens[${this.describe()}\n]`
     }
 
-    transform<R>(config: Partial<TransformConfig<T, R>>): Lens<R> {
+    transform<R>(config: Partial<TransformConfig<T, R>>): Cursor<R> {
         if (
             config.cacheKey !== undefined &&
             this.selectorCache.has(config.cacheKey)

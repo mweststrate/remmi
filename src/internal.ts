@@ -1,7 +1,7 @@
-import "./core/Lens" // without this rollup will drop the side-effect free Lens file
-export * from "./core/Lens"
+import "./core/Cursor" // without this rollup will drop the side-effect free Lens file
+export * from "./core/Cursor"
 export * from "./core/stream-utils"
-export * from "./core/BaseLens"
+export * from "./core/BaseCursor"
 export * from "./core/Pipe"
 export * from "./core/store"
 export * from "./core/merge"

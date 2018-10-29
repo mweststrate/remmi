@@ -1,4 +1,4 @@
-import {Lens, emptyArray, shallowEqual, select} from "../internal"
+import {Cursor, emptyArray, shallowEqual, select} from "../internal"
 
 function grabIndex(_v: any, idx: number) {
     return idx
@@ -10,6 +10,6 @@ function keySelector(value: any): any[] {
     return emptyArray
 }
 
-export function keys<T>(lens: Lens<T>): Lens<(keyof T)[]> {
+export function keys<T>(lens: Cursor<T>): Cursor<(keyof T)[]> {
     return lens.do(select(keySelector), shallowEqual)
 }

@@ -1,11 +1,11 @@
-import { Transformer, shallowEqual, Lens, select, KeyValueMap, map, each } from "../internal";
+import { Transformer, shallowEqual, Cursor, select, KeyValueMap, map, each } from "../internal";
 
 export function filter<A>(
     predicate: (value: A, index: string) => boolean
-): Transformer<A[], Lens<A[]>>;
+): Transformer<A[], Cursor<A[]>>;
 export function filter<A>(
     predicate: (value: A, index: string) => boolean
-): Transformer<KeyValueMap<A>, Lens<KeyValueMap<A>>>;
+): Transformer<KeyValueMap<A>, Cursor<KeyValueMap<A>>>;
 export function filter<A, B>(
     predicate: (value: A, index: string) => B
 ): Transformer<any, any> {

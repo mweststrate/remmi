@@ -1,6 +1,6 @@
 import { nothing } from "immer";
 
-import {BaseLens, Lens, grabValue, fail} from "../internal"
+import {BaseCursor, Cursor, grabValue, fail} from "../internal"
 import { normalizeUpdater } from "./updater-helpers";
 
 const mergeCache = new Map<string, Merge<any, any>>()
@@ -8,8 +8,8 @@ const mergeCache = new Map<string, Merge<any, any>>()
 export class Merge<
     X = any,
     T extends ReadonlyArray<X> = any[]
-> extends BaseLens<T> {
-    constructor(public bases: BaseLens[]) {
+> extends BaseCursor<T> {
+    constructor(public bases: BaseCursor[]) {
         super()
         // TODO: check args
     }
@@ -67,40 +67,40 @@ export class Merge<
     }
 }
 
-function getMergeCacheKey(bases: Lens[]): string {
-    return bases.map(b => (b as BaseLens).lensId).join(";")
+function getMergeCacheKey(bases: Cursor[]): string {
+    return bases.map(b => (b as BaseCursor).lensId).join(";")
 }
 
-export function merge<A>(lens0: Lens<A>): Lens<[A]>
-export function merge<A, B>(lens0: Lens<A>, lens: Lens<B>): Lens<[A, B]>
+export function merge<A>(lens0: Cursor<A>): Cursor<[A]>
+export function merge<A, B>(lens0: Cursor<A>, lens: Cursor<B>): Cursor<[A, B]>
 export function merge<A, B, C>(
-    lens0: Lens<A>,
-    lens1: Lens<B>,
-    lens2: Lens<C>
-): Lens<[A, B, C]>
+    lens0: Cursor<A>,
+    lens1: Cursor<B>,
+    lens2: Cursor<C>
+): Cursor<[A, B, C]>
 export function merge<A, B, C, D>(
-    lens0: Lens<A>,
-    lens1: Lens<B>,
-    lens2: Lens<C>,
-    lens3: Lens<D>
-): Lens<[A, B, C, D]>
+    lens0: Cursor<A>,
+    lens1: Cursor<B>,
+    lens2: Cursor<C>,
+    lens3: Cursor<D>
+): Cursor<[A, B, C, D]>
 export function merge<A, B, C, D, E>(
-    lens0: Lens<A>,
-    lens1: Lens<B>,
-    lens2: Lens<C>,
-    lens3: Lens<D>,
-    lens4: Lens<E>
-): Lens<[A, B, C, D, E]>
+    lens0: Cursor<A>,
+    lens1: Cursor<B>,
+    lens2: Cursor<C>,
+    lens3: Cursor<D>,
+    lens4: Cursor<E>
+): Cursor<[A, B, C, D, E]>
 export function merge<A, B, C, D, E, F>(
-    lens0: Lens<A>,
-    lens1: Lens<B>,
-    lens2: Lens<C>,
-    lens3: Lens<D>,
-    lens4: Lens<E>,
-    lens5: Lens<F>
-): Lens<[A, B, C, D, E, F]>
-export function merge(...lenses: Lens[]): Lens<any>
-export function merge(...lenses: Lens[]): Lens<any> {
+    lens0: Cursor<A>,
+    lens1: Cursor<B>,
+    lens2: Cursor<C>,
+    lens3: Cursor<D>,
+    lens4: Cursor<E>,
+    lens5: Cursor<F>
+): Cursor<[A, B, C, D, E, F]>
+export function merge(...lenses: Cursor[]): Cursor<any>
+export function merge(...lenses: Cursor[]): Cursor<any> {
     const existing = mergeCache.get(getMergeCacheKey(lenses))
     if (existing) return existing
     return new Merge(lenses as any)

@@ -1,18 +1,18 @@
-import {Updater, Lens, Transformer, createStore} from "../internal"
+import {Updater, Cursor, Transformer, createStore} from "../internal"
 
 export interface IRecorder<T = any> {
     pause(): void
     resume(): void
     reset(): void
-    replay(target: Lens<T>): void
+    replay(target: Cursor<T>): void
 }
 
 export function fork<T>(
     recordActions: true
-): Transformer<T, Lens<T> & IRecorder<T>>
-export function fork<T>(recordActions?: false): Transformer<T, Lens<T>>
+): Transformer<T, Cursor<T> & IRecorder<T>>
+export function fork<T>(recordActions?: false): Transformer<T, Cursor<T>>
 export function fork(recordActions = false) {
-    return function(lens: Lens) {
+    return function(lens: Cursor) {
         const fork = createStore(lens.value())
         if (!recordActions) return fork
 
@@ -43,7 +43,7 @@ export function fork(recordActions = false) {
                  * This process is atomic; if one of the updaters throws an exception,
                  * the target will be unmodified
                  */
-                replay(this: Lens, target: Lens = this) {
+                replay(this: Cursor, target: Cursor = this) {
                     target.update((draft: any) => {
                         recordedUpdates.forEach(u => {
                             ;(u as any)(draft)

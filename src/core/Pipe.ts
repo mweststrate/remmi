@@ -1,22 +1,22 @@
-import {BaseLens, Lens, noop, normalizeUpdater, Updater, Producer} from "../internal"
+import {BaseCursor, Cursor, noop, normalizeUpdater, Updater, Producer} from "../internal"
 
 export interface TransformConfig<T, R> {
     description: string
     cacheKey: any
-    onNext(newBaseValue: T, currentValue: R | undefined, self: Lens<R>): R
+    onNext(newBaseValue: T, currentValue: R | undefined, self: Cursor<R>): R
     onUpdate(
         updater: Producer<R>,
         next: (updater: Producer<T>) => void,
-        self: Lens<R>
+        self: Cursor<R>
     ): void
     onSuspend(): void
     onResume(): void
 }
 
-export class Pipe<T, R> extends BaseLens<R> {
+export class Pipe<T, R> extends BaseCursor<R> {
     config: TransformConfig<T, R>
 
-    constructor(private base: Lens<T>, config: Partial<TransformConfig<T, R>>) {
+    constructor(private base: Cursor<T>, config: Partial<TransformConfig<T, R>>) {
         super()
         const {
             cacheKey = undefined,
@@ -53,18 +53,18 @@ export class Pipe<T, R> extends BaseLens<R> {
     }
 
     resume() {
-        ;(this.base as BaseLens).registerDerivation(this)
+        ;(this.base as BaseCursor).registerDerivation(this)
         this.config.onResume()
     }
 
     suspend() {
-        ;(this.base as BaseLens).removeDerivation(this)
+        ;(this.base as BaseCursor).removeDerivation(this)
         this.config.onSuspend()
     }
 
     describe() {
         return (
-            (this.base as BaseLens).describe() +
+            (this.base as BaseCursor).describe() +
             "\n\t.do(" +
             this.config.description +
             ")"

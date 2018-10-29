@@ -1,8 +1,8 @@
-import {_shallowEqual, Lens} from "../internal"
+import {_shallowEqual, Cursor} from "../internal"
 
 const ShallowEqual = {ShallowEqualLens: true}
 
-export function shallowEqual<T>(lens: Lens<T>): Lens<T> {
+export function shallowEqual<T>(lens: Cursor<T>): Cursor<T> {
     return lens.transform({
         cacheKey: ShallowEqual,
         onNext(newBaseValue, currentValue) {

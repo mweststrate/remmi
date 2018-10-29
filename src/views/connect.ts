@@ -1,4 +1,4 @@
-import {Disposer, Handler, Transformer, fail, Lens} from "../internal"
+import {Disposer, Handler, Transformer, fail, Cursor} from "../internal"
 
 // TODO: add support for suspend / resume hooks?
 export type IConnectionHandler<T = any> = (
@@ -48,7 +48,7 @@ export function connect<T = any>(
     handler: IConnectionHandler<T>
 ): Transformer<T, Disposer | undefined>
 export function connect(handler: IConnectionHandler<any>) {
-    return (lens: Lens) => {
+    return (lens: Cursor) => {
         let subscriptionDisposer: Disposer | undefined
         let isHandlingIncomingUpdate = false
         let isHandlingSubscription = false

@@ -1,4 +1,4 @@
-import {Lens} from "../internal"
+import {Cursor} from "../internal"
 
 export type KeyValueMap<T> = { [key: string]: T }
 
@@ -11,7 +11,7 @@ export function fail(msg: string): never {
     throw new Error("[remmi] " + msg)
 }
 
-export function grabValue<T>(lens: Lens<T>): T {
+export function grabValue<T>(lens: Cursor<T>): T {
     return lens.value()
 }
 

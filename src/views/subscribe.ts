@@ -1,17 +1,17 @@
 import {
     stringifyFunction,
     Transformer,
-    Lens,
+    Cursor,
     Disposer,
     Handler,
-    BaseLens,
+    BaseCursor,
     fail
 } from "../internal"
 
-class Subscription<T> extends BaseLens<undefined> {
+class Subscription<T> extends BaseCursor<undefined> {
     disposed = false
 
-    constructor(private base: BaseLens<T>, private handler: Handler<T>) {
+    constructor(private base: BaseCursor<T>, private handler: Handler<T>) {
         super()
         base.registerDerivation(this)
     }
@@ -51,6 +51,6 @@ class Subscription<T> extends BaseLens<undefined> {
 export function subscribe<T>(
     subscription: Handler<T>
 ): Transformer<T, Disposer> {
-    return (lens: Lens<T>) =>
+    return (lens: Cursor<T>) =>
         new Subscription(lens as any, subscription).dispose
 }

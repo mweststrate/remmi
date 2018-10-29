@@ -1,5 +1,5 @@
 import * as React from "react"
-import {Lens, Tracker, Disposer, Transformer, all, KeyedLens} from "../internal"
+import {Cursor, Tracker, Disposer, Transformer, all, KeyedLens} from "../internal"
 
 class AutoRender extends React.PureComponent {
     tracker?: Tracker
@@ -18,7 +18,7 @@ class AutoRender extends React.PureComponent {
     }
 }
 
-class RenderLens<T, L extends Lens<T>> extends React.PureComponent<{
+class RenderLens<T, L extends Cursor<T>> extends React.PureComponent<{
     lens: L
     renderer: (value: T, lens: L) => React.ReactNode
 }> {
@@ -51,7 +51,7 @@ class RenderLens<T, L extends Lens<T>> extends React.PureComponent<{
 }
 
 class RenderLenses<T> extends React.PureComponent<{
-    lens: Lens<T[]>
+    lens: Cursor<T[]>
     renderer: (value: T, lens: KeyedLens<T>) => React.ReactNode
 }> {
     itemRenderer = (lens: KeyedLens<T>) => {
@@ -84,22 +84,22 @@ export function autoRender(fn: () => React.ReactNode) {
 
 // TODO: should only value be passed to the callback?
 export function render<T>(
-    renderer: (value: T, lens: Lens<T>) => React.ReactNode
+    renderer: (value: T, lens: Cursor<T>) => React.ReactNode
 ): Transformer<T, React.ReactElement<any>> {
-    return (lens: Lens<T>) => <RenderLens lens={lens} renderer={renderer} />
+    return (lens: Cursor<T>) => <RenderLens lens={lens} renderer={renderer} />
 }
 
 // TODO: should only lens be passed to the callback?
 export function renderAll<T>(
     renderer: (value: T, lens: KeyedLens<T>) => React.ReactNode
-): Transformer<Lens<T[]>, React.ReactElement<any>>
+): Transformer<Cursor<T[]>, React.ReactElement<any>>
 export function renderAll<T>(
     renderer: (value: T, lens: KeyedLens<T>) => React.ReactNode
-): Transformer<Lens<{[key: string]: T}>, React.ReactElement<any>>
+): Transformer<Cursor<{[key: string]: T}>, React.ReactElement<any>>
 export function renderAll(
     renderer: (value: any, lens: KeyedLens<any>) => React.ReactNode
 ): any {
-    return (lens: Lens<any>) => <RenderLenses lens={lens} renderer={renderer} />
+    return (lens: Cursor<any>) => <RenderLenses lens={lens} renderer={renderer} />
 }
 
 export function useCursor(cursor) {

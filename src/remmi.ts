@@ -8,7 +8,7 @@ export {
     fork,
     fromStream,
     invariant,
-    isLens,
+    isCursor,
     keys,
     map,
     mapReduce,

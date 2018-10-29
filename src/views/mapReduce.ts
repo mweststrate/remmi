@@ -1,5 +1,5 @@
 import {
-    Lens,
+    Cursor,
     Transformer,
     fail,
     shallowDiff,
@@ -16,16 +16,16 @@ export type MapReduceChanges<U> = {
 }
 
 type MapReduceEntry<T, U> = {
-    rootLens: Lens<T>
-    mappedLens: Lens<U>
+    rootLens: Cursor<T>
+    mappedLens: Cursor<U>
     disposer: Disposer
 }
 
 // TODO: make index a number for arrays?
 export function mapReduce<T, U, S extends T[] | KeyValueMap<T>, R>(
-    mapper: (lens: Lens<T>, key: string) => Lens<U>,
+    mapper: (lens: Cursor<T>, key: string) => Cursor<U>,
     reducer: (previousValue: R, changes: MapReduceChanges<U>, sourceValue: S) => R
-): Transformer<S, Lens<R>>{
+): Transformer<S, Cursor<R>>{
     return baseLens => {
         const entries = new Map<string, MapReduceEntry<T, U>>()
         let prevBaseValue: any
