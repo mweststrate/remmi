@@ -1,7 +1,5 @@
 # Remmi
 
-_Go away! Nothing to see here yet_
-
 _Materialized views for immutable data_
 
 <a href="https://www.buymeacoffee.com/mweststrate" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>If you think Remmi is an idea worth pursuing, encourage me with coffee :-). Or even better: discuss it with me over a real one the next opportunity!
@@ -18,7 +16,8 @@ Granted, they are no materialized, but you conceptually Remmi works like a mater
 
 Where [immer](https://github.com/mweststrate/immer) solves the problem of "how to update a deep, immutable state tree in a convenient way",
 _remmi_ solves the opposite way: "given a deep, immutable state tree, how to create reactive, bi-directional views that observe the immutable state?".
-As such, immer is basically lenses, mobx, immutable data and reactive streams smooshed together.
+As such, immer is basically cursors, mobx, immutable data and reactive streams smooshed together, helping you to transform your immutable data tree into something else, as reactively as possible.
+
 Note that "view" on the original state can be interpreted here in it's broadest term: derived data, UI (like React or lithtml), outgoing or incoming data streams or even OO-like data models!
 
 # Features
@@ -31,17 +30,17 @@ Note that "view" on the original state can be interpreted here in it's broadest 
 * Mostly simple function composition
 * Extremely extensible, please share and publish your own transformers!
 * `this`-less
-* `null` safe (you can create, compose, chain lenses even when there is no backing value)
+* `null` safe (you can create, compose, chain cursors even when there is no backing value)
 
 
 # Core concepts
 
-## Basics 1: creating lenses
+## About cursors
 
-The most important concept in remmi is the concept of lenses.
+The most important concept in remmi is the concept of cursors.
 Lenses allow creating materialized views on the state, and enables reading from, writing to, and reacting to changes in the materialized view.
 
-To support these features every lens exposes the following three core methods:
+To support these features every lens exposes the following four core methods:
 
 1. `value()` returns the current, immutable value of the lens
 2. `update(thing)` applies an update to the current lens; that is, transforms and propagetes the update to wherever the lens got it's value from. Thing can be one of the following things:
@@ -49,11 +48,18 @@ To support these features every lens exposes the following three core methods:
    * An object. Merges the provided object with the current object using `Object.assign`
    * A primitive value or array. Replaces the currenet state with the given value
 3. `subscribe(handler)`. The handler will called automatically every time the `value` of this lens is changed
+4. `do(transformations)`. Transforms the cursor into something else, more on that later!
 
-In immer, every store is a lens as well. So the simplest way to create a lens is to just create a fresh store.
+## Creating a store
+
+The simplest way to get started with Remmi is to create a store using `createStore`.
+`createStore` create a very special cursor, one that actually holds state.
+But basically, that is just an implementation detail, and you will interact with it like any other cursor.
 
 ```javascript
-const profile$ = createStore({
+import { createStore } from "remmi"
+
+const profileCursor = createStore({
       name: "Michel",
       address: {
             country: "Amsterdam"
@@ -61,12 +67,12 @@ const profile$ = createStore({
 })
 
 // subscribe
-const disposer = profile$.subscribe(profile => {
+const disposer = profileCursor.subscribe(profile => {
       console.log(profile.address.country)
 })
 
 // update
-profile$.update(draftProfile => {
+profileCursor.update(draftProfile => {
       draftProfile.address.country = "The Netherlands"
 })
 // prints: "The Netherlands"
@@ -74,70 +80,79 @@ profile$.update(draftProfile => {
 disposer() // cancel the subscription
 
 // read the current value
-console.log(profile$.value().address.country)
+console.log(profileCursor.value().address.country)
 ```
 
-The post-fixing of the lens name with `$` is a recommended best practice, as it makes it easy to distinguish lenses from the values they represent. For example it prevents variable shadowing in a case like: `profile$.subscribe(profile => {... })`.
+The post-fixing of the lens name with `Cursor` is a recommended best practice, as it makes it easy to distinguish cursors from the values they represent. For example it prevents variable shadowing in a case like: `profileCursor.subscribe(profile => {... })`.
 
-## Basics 2: creating lenses from lenses
+## Selecting data with cursors
 
-Lenses are like materialized views in the database, they represent the latest state of the underlying data structure, and also accept updates to write data back. We can create new lenses by leveraging the `.view` method that all lenses expose:
+Cursors are like materialized views in the database, they represent the latest state of the underlying data structure, and also accept updates to write data back. We can create new cursors by leveraging the `.do` method that all cursors expose, and passing in a `select` transformation, which grabs the `"address"` field from the profile and creates a cursor for that:
 
 ```javascript
-const address$ = profile$.do("address")
+import { select } from "remmi"
 
-address$.subscribe(address => {
+const addressCursor = profileCursor.do(select("address"))
+
+addressCursor.subscribe(address => {
       console.log("New address is: " + JSON.stringify(address))
 })
 
-address$.update(address => {
+addressCursor.update(address => {
       address.city = "Roosendaal"
 })
 
 // prints { country: "The Netherlands", city: "Roosendaal"}
 
-profile$.update(profile => {
+profileCursor.update(profile => {
       profile.address.province = "Noord Brabant"
 })
 
 // prints { country: "The Netherlands", city: "Roosendaal", province: "Noord Brabant"}
 ```
 
-Lenses create a view on a part of the state, and are self contained units that can be both subscribe to, and write to the state that backs the tree. Lenses are smart as they will only respond if the relevant part of the state has changed.
+Cursors create a view on a part of the state, and are self contained units that can be both subscribe to, and write to the state that backs the tree.
+Cursors are smart as they will only respond if the relevant part of the state has changed.
+
+Cursors evaluate lazily, so they won't actually do any work until you start pulling values from them!
 
 If you are using typescript, you will note that lenses are strongly typed. For example the following statement results in a compile errors:
- `profile$.do("hobbies")` (profile doesn't have a `"hobbies"` field).
+ `profileCursor.do("hobbies")` (profile doesn't have a `"hobbies"` field).
 
-Because lenses have a very uniform structure, testing them is issue, for example to test logic around the concept of addresses, in a unit test you could refrain from creating an entire profile object, and just create a store for the address instead: `const address$ = createStore({ country: "The Netherlands", city: "Roosendaal", province: "Noord Brabant"})`. For the consumers it doesn't matter whether a lens is a root, or a materialized view on other lenses.
+_Tip: Because `select` is so common, there is a shortcut: `select` can be called directly as function on a cursor `profileCursor.select("address")`_
 
-# Basics 3: selectors functions
+## Selector functions
 
-`lens.do(key)` is actually a short-hand for `lens.do(select(key))`. The `.view` method of a lens is a very generic construct which can be used to derive all kinds of new views from a lens. This is not limited to producing other lenses, but also React components as we will see later.
-
-`select` can not be used to pick an object from the state tree, it also accepts functions. Those functions should be pure and can construct arbitrarily new values from the tree (conceptually, this is very similar to reselect or computed values in MobX). For example:
+The `select` transformation is not limited to just plucking fields from another cursor,
+they can be used to derive all kinds of new views from a lens.
+For that purpose `select` also accepts functions.
+Those functions should be pure and can construct arbitrarily new values from the tree (conceptually, this is very similar to reselect or computed values in MobX). For example:
 
 ```javascript
 import { createStore, select } from "remmi"
 
-const todos$ = createStore([
+const todosCursor = createStore([
       { title: "Test Remmi", done: true },
       { title: "Grok Remmi", done: false}
 ])
 
-const tasksLeft$ = todos$.do(select(todos => todos.filter(todo => todo.done === false).length))
+const tasksLeftCursor = todosCursor.do(select(
+      todos => todos.filter(todo => todo.done === false).length
+))
 
-tasksLeft$.subscribe(left => { console.log("Tasks left:", left) })
-todos$.update(todos => {
+tasksLeftCursor.subscribe(left => { console.log("Tasks left:", left) })
+
+todosCursor.update(todos => {
       todos[0].done = false
 })
 // prints "Tasks left: 2"
 ```
 
-# Transformers
+## Transformers
 
 TODO: explain concept of transformes
 
-# Basics 4: merging lenses
+## Basics 4: merging lenses
 
 The `merge` function can combine multiple lenses into a new one. (It is quite comparable to `Promise.all`).
 This is quite useful when you are working for example with 'foreign keys'.
@@ -209,6 +224,13 @@ API.md?
 # Tips & Trics
 
 Create transactions using update
+
+
+## Testing
+
+Because lenses have a very uniform structure, testing them is issue, for example to test logic around the concept of addresses, in a unit test you could refrain from creating an entire profile object, and just create a store for the address instead: `const addressCursor = createStore({ country: "The Netherlands", city: "Roosendaal", province: "Noord Brabant"})`. For the consumers it doesn't matter whether a cursor is created using `createStore`, or using `select`.
+
+
 
 # API
 
