@@ -103,14 +103,14 @@ export function renderAll(
 }
 
 export function useCursor(cursor) {
-    function updater(value) {
-        setValue(value)
-    }
-    // subscribe to the cursor
-    const lensSubscription = React.useMemo(() => cursor.subscribe(updater), [cursor])
-    // unsubscribe the hook
-    React.useEffect(() => lensSubscription, [])
-    // compute value (after subscribing to avoid re-evaluation!)
+    // utility function, so that we can first describe, and then use useState,
+    // to avoid a cold read from the cursor
+    function update(v) { setValue(v) }
+    // subscribe to the cursor. Re-subscribe (and dispose old)
+    // for earlier cursors
+    React.useEffect(() => cursor.subscribe(update), [cursor])
+    // grab initial value (only on first run)
     const [value, setValue] = React.useState(() => cursor.value())
+    // return the value
     return value
 }

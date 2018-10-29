@@ -8,15 +8,10 @@ export function randomUuid() {
 
 // TODO: for whathever reason, hooks don't work when exported from the immer package :'(
 // Probably build issue, need to figure out later
+
 export function useCursor(cursor) {
-    function updater(value) {
-        setValue(value)
-    }
-    // subscribe to the cursor
-    const lensSubscription = React.useMemo(() => cursor.subscribe(updater), [cursor])
-    // unsubscribe the hook
-    React.useEffect(() => lensSubscription, [])
-    // compute value (after subscribing to avoid re-evaluation!)
+    function update(v) { setValue(v) }
+    React.useEffect(() => cursor.subscribe(update), [cursor])
     const [value, setValue] = React.useState(() => cursor.value())
     return value
 }

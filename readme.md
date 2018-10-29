@@ -307,7 +307,7 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 # Things to do
 
 * [ ] join
-* [ ] warn on cold reads
+* [ ] warn on cold reads)
 * [ ] multiple args to select
 * [ ] rename everything to cursor
 * [ ] use hooks
