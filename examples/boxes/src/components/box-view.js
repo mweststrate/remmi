@@ -6,10 +6,9 @@ import {boxWidth} from "../stores/domain-state"
 
 class BoxView extends PureComponent {
     render() {
-        const {box, box$, store} = this.props
-        const isSelected = merge(box$, store.select("selection")).select(
-            ([box, selection]) => box.id === selection
-        )
+        const {box, boxCursor, store} = this.props
+        const isSelected = merge(boxCursor, store.select("selection"))
+            .select(([box, selection]) => box.id === selection)
         console.log("rendering box " + box.id)
         return isSelected.do(
             render(isSelected => (
@@ -38,7 +37,7 @@ class BoxView extends PureComponent {
     }
 
     handleDrag = (e, dragInfo) => {
-        this.props.box$.update(d => {
+        this.props.boxCursor.update(d => {
             d.x += dragInfo.deltaX
             d.y += dragInfo.deltaY
         })

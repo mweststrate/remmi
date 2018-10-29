@@ -11,7 +11,7 @@ import FunStuff from './fun-stuff';
 class Canvas extends Component {
     render() {
         const {store} = this.props
-        const boxesC = store.select("boxes")
+        const boxesCursor = store.select("boxes")
         const selection = store.select(s => s.boxes[s.selection])
         return (
             <div className="app">
@@ -19,18 +19,17 @@ class Canvas extends Component {
                     <svg>
                         {store.do(
                             select("arrows"),
-                            renderAll((arrow, arrowC) => (
+                            renderAll((arrow, arrowCursor) => (
                                 <ArrowView
-                                    arrow={arrow}
-                                    arrowC={arrowC}
-                                    boxesC={boxesC}
+                                    arrowCursor={arrowCursor}
+                                    boxesCursor={boxesCursor}
                                 />
                             ))
                         )}
                     </svg>
-                    {boxesC.do(
-                        renderAll((box, box$) => (
-                            <BoxView box={box} box$={box$} store={store} />
+                    {boxesCursor.do(
+                        renderAll((box, boxCursor) => (
+                            <BoxView box={box} boxCursor={boxCursor} store={store} />
                         ))
                     )}
                 </div>

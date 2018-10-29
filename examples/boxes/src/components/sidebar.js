@@ -1,4 +1,4 @@
-import {select, render} from "remmi"
+import {render} from "remmi"
 import React, {PureComponent} from "react"
 
 class Sidebar extends PureComponent {

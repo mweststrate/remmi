@@ -23,10 +23,10 @@ import { boxWidth } from "../stores/domain-state"
 // }
 
 
-export default memo(function ArrowView({arrowC, boxesC}) {
-    const arrow = useCursor(arrowC)
-    const from = useCursor(boxesC.select(arrow.from))
-    const to = useCursor(boxesC.select(arrow.to))
+export default function ArrowView({arrowCursor, boxesCursor}) {
+    const arrow = useCursor(arrowCursor)
+    const from = useCursor(boxesCursor.select(arrow.from))
+    const to = useCursor(boxesCursor.select(arrow.to))
     const [x1, y1, x2, y2] = [
         from.x + boxWidth(from) / 2,
         from.y + 30,
@@ -37,4 +37,4 @@ export default memo(function ArrowView({arrowC, boxesC}) {
     return <path className="arrow"
         d={`M${x1} ${y1} L${x2} ${y2}`}
     />
-})
+}
