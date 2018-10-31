@@ -150,9 +150,27 @@ todosCursor.update(todos => {
 
 ## Transformers
 
-TODO: explain concept of transformes
+The `.do` can be used to transform the cursors value into something else.
+Multiple transformers can be passed to `.do`, where the input of one is piped into the other, making it very similar to for example `Observable.pipe` in RxJS.
 
-## Basics 4: merging lenses
+Built in transformers are:
+* `all` - transforms a cursor that produces a collection (object or array) to a cursor of cursors, where each cursor forms the cursor of a field of the object
+* `connect` - connects a cursor to an external resources, and sets up an uni- or bi-directional connection to read new values from, and push new values to the external resource
+* `filter` - given a predicate filters over a collection. This is more efficient as as a `select` which uses `Array.filter`, as `mapReduce` is used under the hood, causing unmodified entries not to be re-processed
+* `fork` - creates a new cursor that has it's own state, which is initially the same as the old cursor's value. After forking, the forked cursor will keep track of all updates that are applied, and provides the possibility to play them back onto the original cursor
+* `fromStream` - Given an observable stream, reads all values from the stream and use it to update the cursor
+* `keys` - Produces all the keys of a collection, similar to `Object.keys`
+* `map` - maps over a collection, leveraging `mapReduce` under the hood to efficiently reuse mappings that weren't affected by an update
+* `readOnly` - transforms the current cursor into a read only cursor, which can be read from, but not written to
+* `render` - transforms the current cursor into a React component, that automatically keeps track of future updates to the cursor
+* `renderAll` - similar, but maps over a collection and produces a rendering per item in the collection
+* `select` - selects or produces a new value from the current state
+* `shallowEqual` - turns the cursor into a cursor that ignore updates that are shallowly equal to the previous value. Mostly useful after `select`
+* `subscribe` - subscribe a callback to listen to future cursor updates. `cursor.subscribe` can be used as shorthand
+* `tap` - tap into the stream, and prints a log message each time the cursor updates
+* `toStream` - creates an observable stream from the current cursor
+
+## Merging lenses
 
 The `merge` function can combine multiple lenses into a new one. (It is quite comparable to `Promise.all`).
 This is quite useful when you are working for example with 'foreign keys'.
@@ -161,7 +179,7 @@ This is quite useful when you are working for example with 'foreign keys'.
 ```javascript
 import { createStore, select, merge } from "remmi"
 
-const app$ = createStore({
+const appCursor = createStore({
       todos: [
             { title: "Test Remmi", done: true, assignee: "24" },
             { title: "Grok Remmi", done: false }
@@ -173,22 +191,20 @@ const app$ = createStore({
       }
 })
 
-const testTodo$ = app$.do("todos", 0) // same as app$.do("todos").do(0)
-const users$ = app$.do("users")
-const testTodoWithUserName$ = testTodo$.do(
-      merge(users$),
-      select(([todo, users]) => ({
-            ...todo,
-            assignee: users[todo.assignee].name
-      }))
-)
+const firstTodoCursor = app.select("todos").select(0)
+const usersCursor = app.select("users")
 
-console.log(testTodoWithUserName$.value()) // prints: { title: "Test Remmi", done: true, assignee: "Michel" }
+const assigneeNameCursor =
+      merge(usersCursor, firstTodoCursor),
+      select(([users, todo]) =>
+            todo.assignee ? users[todo.assignee].name : undefined
+      )
+
+console.log(assigneeNameCursor.value())
+// prints: "Michel"
 ```
 
 Merge produces a lens in itself, that just combines all the values of the input lenses as array.
-`.do` does not just accept a transformer; if you give it multiple once it chains them together. In other words,
-`lens$.do(x).do(y)` can simple be written as `lens$.do(x, y)`
 
 Note that this example is contrived, as the merge could also have been written using `select`.
 But in big applications you might want to send only a part of your state around, and merge shows how to create a lens that combine individual pieces again.
@@ -197,38 +213,66 @@ When combining multiple lenses or merges, Remmi will make sure that the lenses u
 
 `merge` can merge lenses from multiple stores.
 
-# Basics 5: rendering lenses
+# Detailed semantics
 
-# Concepts 1: Immutable values versus events
+## State versus Events
 
-# Concepts 2: About transactions and change propagation
+Immer might look like a cross-over between reactive streams and lenses.
+Which is correct.
+The pipe and subscription mechanism are similar to reactive streams.
+The differences however, is that conceptually Remmi cursors are designed to
+transform _state_, while reactive streams reason over events and time.
 
-# Concepts 3: Side effects versus lenses
+The two have good compatability, but the choose for either of both should based be on the question whether you want to capture either:
+* The current state of the application, molding it in different values if needed
+* The events that happened over time, and reasoning about events to produce side effects
 
-refrain from .subscribe
+## Cold and Hot cursors
 
-# Advanced 1: Generalizing views
+Like streams, a cursor can be either `hot` or `cold`.
+Hot means that there is a subscription that directly or indirectly depends on the current value of the cursor.
+A cursor is `cold` if there is no such subscriptions.
+Cold cursors are inefficient to read from, as they don't subscribe to their base cursors either (to prevent memory leaks).
+So avoid reading `.value()` from a cursor that is cold!
 
-# Advanced 2: Overview of all built-in factories
-API.md?
+## Transactions
 
-# Advanced 3: Models
+Cursor automatically apply a transaction per `.update()` call, subscribers are only updates ones the `.update` call finishes.
+If there are multiple nested `.update` calls, subscribers will only be notified once the outer one finishes.
+A useful trick is to use `.update`, even without draft, to group multiple updates together, for example:
 
-# Advanced 4: Automatic lenses
+```javascript
+
+storeCursor.update(() => {
+      // without the wrapping update subscribers would be notified of a new state three times
+      const id1 = createBox(storeCursor, "Roosendaal", 100, 100)
+      const id2 = createBox(storeCursor, "Prague", 650, 300)
+      const id3 = createBox(storeCursor, "Tel Aviv", 150, 300)
+})
+
+export function createBox(storeCursor, name, x, y) {
+    const id = randomUuid()
+    storeCursor.update(d => {
+        d.boxes[id] = { id, name, x, y }
+    })
+    return id
+}
+```
+
+All subscribres are notified synchronosly as soon as a transaction ends, so, like in MobX update effects are immediately visible.
+
+Updates are glitch free; that means that, when for example a `merge` is used to combine two lenses, and both lenses are updated, the `merge` will only run once, with both the updated values, and not for any intermediate state.
+
+## Testing lenses
+
+Because lenses have a very uniform structure, testing them is issue, for example to test logic around the concept of addresses, in a unit test you could refrain from creating an entire user profile object, and just create a store for the address instead: `const addressCursor = createStore({ country: "The Netherlands", city: "Roosendaal", province: "Noord Brabant"})`. For the consumers of a cursor it doesn't matter whether a cursor is created using `createStore`, or using `select`, they will behave the same.
+
+# Recipes
 
 # Advanced 5: Interoperability
   - RxJS
   - Redux
 
-
-# Tips & Trics
-
-Create transactions using update
-
-
-## Testing
-
-Because lenses have a very uniform structure, testing them is issue, for example to test logic around the concept of addresses, in a unit test you could refrain from creating an entire profile object, and just create a store for the address instead: `const addressCursor = createStore({ country: "The Netherlands", city: "Roosendaal", province: "Noord Brabant"})`. For the consumers it doesn't matter whether a cursor is created using `createStore`, or using `select`.
 
 
 
@@ -238,28 +282,7 @@ TODO: generate and link from JSDocs
 
 ---
 
-![lenses](docs/lenses.jpg)
-
-Lenses and immutable stores are no new concepts, but Immer adds a few fresh concepts to the list:
-
-* Updates are very straight forward to apply tnx to [immer](https://github.com/mweststrate/immer)
-* Lenses act as two-way pipes; one can write to a lens and the lens will transparently apply the changes to the original root store. This makes it possible to decouple and isolate small parts of the state and makes asynchronous process easy
-* Lenses and stores share exactly the same api, which has great benefits for test
-* Remmi applies efficient, glitch-free derivation concept from MobX, which makes it impossible to observe stale or inconsistent data
-* All actions and derivations in Remmi are synchronous and transactional
-* Remmi supports the concepts of models; this makes it possible to design very friendly APIs around a particular lens and organize the code base by-feature
-* Remmi has first class integration with React. Render are optimized without needing further optimizations such as `shouldComponentUpdate`
-* Remmi optionally supports transparent tracking of dependencies, avoiding the need to set up explicit subscriptions
-* Remmi supports forking, cloning, replay of actions, patches and all that fancy stuff
-
-
 FAQ: Will it be better than MobX? Well, that is not mine to decide :-). But my initial guess: No. And so far this is just an experimental package. It is less efficient and syntactically more verbose. However if you prefer a single-immutable-value-source of truth, with less magic. You might fancy this one.
-
-
-Convenience api's
-* directly pass values to update
-* `select` builder or not
-* multiple builders
 
 ---
 
@@ -328,15 +351,16 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 
 # Things to do
 
-* [ ] join
-* [ ] warn on cold reads)
-* [ ] multiple args to select
-* [ ] rename everything to cursor
-* [ ] use hooks
+* [ ] warn on cold reads
 * [ ] kill models?
+* [ ] kill change propagation model?
+* [ ] multiple args to select
+* [ ] write and generate documents
+* [ ] use hooks
 
 ## Later
 
+* [ ] join?
 * [ ] `.all()`, `.renderAll()` and `.mapReduce()` should detect splices (and not pass keys for arrays to handlers).
 * [ ] api to subscribe to patchespatch subscriptoin
 * [ ] separate export for react bindings
