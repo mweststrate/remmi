@@ -84,6 +84,16 @@ class Store<T> extends BaseCursor<T> {
     }
 }
 
+/**
+ * Creates a new cursor that is not derived from any other cursor,
+ * but rather holds it own state and can be updated later.
+ *
+ * @export
+ * @template T
+ * @param {T} initialValue
+ * @param {StoreOptions} [options]
+ * @returns {Cursor<T>}
+ */
 export function createStore<T>(
     initialValue: T,
     options?: StoreOptions

@@ -13,7 +13,6 @@ export {
     map,
     mapReduce,
     merge,
-    model,
     readOnly,
     render,
     renderAll,

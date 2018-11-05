@@ -1,5 +1,11 @@
 import { Transformer, shallowEqual, Cursor, select, KeyValueMap, map, each } from "../internal";
 
+/**
+ * Transforms a cursor into a cursor that contains a filtered value of the original collection (object or array).
+ * Using the filter transformation is more efficient than running, for example, `Array.filter` in a `select`
+ * transformation, as the later will always filter the entire set again if the collection changes, while
+ * the `filter` transformation will only run on objects in the collection that did actively change
+ */
 export function filter<A>(
     predicate: (value: A, index: string) => boolean
 ): Transformer<A[], Cursor<A[]>>;

@@ -1,5 +1,11 @@
 import { Transformer, mapReduce, Cursor, select, KeyValueMap } from "../internal";
 
+/**
+ * Transforms a cursor into a cursor that contains a mapped value of the original collection (object or array).
+ * Using the map transformation is more efficient than running, for example, `Array.map` in a `select`
+ * transformation, as the later will always map the entire set again if the collection changes, while
+ * the `map` transformation will only run on objects in the collection that did actively change
+ */
 export function map<A, B>(
     mapper: (value: A, index: string) => B
 ): Transformer<A[], Cursor<B[]>>;

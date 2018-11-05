@@ -12,8 +12,8 @@ export function createBoxesStore(initialState = {
     storeCursor.update(() => {
         // by wrapping in an update, we make this one atomic update
         const id1 = createBox(storeCursor, "Roosendaal", 100, 100)
-        const id2 = createBox(storeCursor, "Amsterdam", 650, 300)
-        const id3 = createBox(storeCursor, "Prague", 150, 300)
+        const id2 = createBox(storeCursor, "Prague", 650, 300)
+        const id3 = createBox(storeCursor, "Tel Aviv", 150, 300)
         createArrow(storeCursor, id1, id2)
         createArrow(storeCursor, id2, id3)
     })

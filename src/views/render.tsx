@@ -78,6 +78,28 @@ class RenderLenses<T> extends React.PureComponent<{
     }
 }
 
+
+/**
+ * Given a function that produces a React component, autorun will automatically
+ * cause a re-render once a cursor that was deferenced (using `.value()`) changes,
+ * see also `autorun`
+ *
+ * @export
+ * @example
+ * function ArrowView({arrowC, boxesC}) {
+ *     return autoRender(() => {
+ *         const arrow = arrowC.value()
+ *         const from = boxesC.select(arrow.from).value()
+ *         const to = boxesC.select(arrow.to).value()
+ *
+ *         return <path className="arrow"
+ *             d={`M${from.x} ${from.y} L${to.x} ${to.y}`}
+ *         />
+ *     })
+ * }
+ * @param {() => React.ReactNode} fn
+ * @returns
+ */
 export function autoRender(fn: () => React.ReactNode) {
     return <AutoRender>{fn}</AutoRender>
 }

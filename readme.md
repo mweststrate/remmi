@@ -4,6 +4,21 @@ _Materialized views for immutable data_
 
 <a href="https://www.buymeacoffee.com/mweststrate" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>If you think Remmi is an idea worth pursuing, encourage me with coffee :-). Or even better: discuss it with me over a real one the next opportunity!
 
+_This project is not actively maintained! So far, it has been a proof-of-concept. If you like the concept though, feel free to open an issue and consider becoming a maintainer, in which case this library might have a bright future! Without maintainers, it will no be actively developed any further._
+
+
+### Table of contents
+
+* [Introduction](#introduction)
+* [Features](#features)
+* [Core concepts](#core-concepts)
+* [API](#api)
+* [Recipes](#recipes)
+* [Detailed semantics](#detailed-semantics)
+* [Gotchas](#gotchas)
+* [Roadmap](#roadmap)
+* [FAQ](#faq)
+* [Credits](#credits)
 
 # Introduction
 
@@ -213,6 +228,62 @@ When combining multiple lenses or merges, Remmi will make sure that the lenses u
 
 `merge` can merge lenses from multiple stores.
 
+# API
+
+_TODO: generate and link from JSDocs_
+
+# Recipes
+
+_TODO: work out  this section_
+
+- Advanced 5: Interoperability
+  - RxJS
+  - Redux
+- Read from websocket - https://codesandbox.io/s/o7y0mrvy86
+- Bidirectional sink between stores (unit test)
+- store from mouse handler - https://codesandbox.io/s/74252r73nq
+- Subscribe to reactive streams (unit tests)
+- simple example
+- references
+- testing a lens (model)
+- async process
+- connect to db
+* [ ] something cool with lithtml
+* [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
+* [ ] graphql
+* [ ] streams
+
+
+### connect to a redux store
+
+```javascript
+const remmiStore = createStore(reduxStore.getState())
+
+// uni-directional sink (Redux -> Remmi)
+const cancel = remmiStore.do(
+      connect((_, sink) => reduxStore.subscribe(sink))
+)
+
+// bi-directional sink
+const cancel = remmiStore.do(
+      connect((subcribe, sink) => {
+            // dispatch action if remmiStore was updated
+            subcribe(newState => {
+                  reduxStore.dispatch({
+                        type: "REPLACE_THIS_AND_THAT",
+                        payload: newState
+                  })
+            })
+
+            // sink Redux to Remmi
+            return reduxStore.subscribe(sink)
+      })
+)
+remmiStore.select("users").subscribe(/*etc */)
+
+cancel() // stop syncing
+```
+
 # Detailed semantics
 
 ## State versus Events
@@ -267,99 +338,29 @@ Updates are glitch free; that means that, when for example a `merge` is used to 
 
 Because lenses have a very uniform structure, testing them is issue, for example to test logic around the concept of addresses, in a unit test you could refrain from creating an entire user profile object, and just create a store for the address instead: `const addressCursor = createStore({ country: "The Netherlands", city: "Roosendaal", province: "Noord Brabant"})`. For the consumers of a cursor it doesn't matter whether a cursor is created using `createStore`, or using `select`, they will behave the same.
 
-# Recipes
-
-# Advanced 5: Interoperability
-  - RxJS
-  - Redux
-
-
-
-
-# API
-
-TODO: generate and link from JSDocs
-
----
-
-FAQ: Will it be better than MobX? Well, that is not mine to decide :-). But my initial guess: No. And so far this is just an experimental package. It is less efficient and syntactically more verbose. However if you prefer a single-immutable-value-source of truth, with less magic. You might fancy this one.
-
----
-
-# Recipes
-
-- Read from websocket - https://codesandbox.io/s/o7y0mrvy86
-- Bidirectional sink between stores (unit test)
-- store from mouse handler - https://codesandbox.io/s/74252r73nq
-- Subscribe to reactive streams (unit tests)
-- simple example
-- references
-- testing a lens (model)
-- async process
-- connect to db
-* [ ] something cool with lithtml
-* [ ] Build something cool with https://codesandbox.io/s/m5lkpjm5mj
-* [ ] graphql
-* [ ] streams
-
-
-### connect to a redux store
-
-```javascript
-const remmiStore = createStore(reduxStore.getState())
-
-// uni-directional sink (Redux -> Remmi)
-const cancel = remmiStore.do(
-      connect((_, sink) => reduxStore.subscribe(sink))
-)
-
-// bi-directional sink
-const cancel = remmiStore.do(
-      connect((subcribe, sink) => {
-            // dispatch action if remmiStore was updated
-            subcribe(newState => {
-                  reduxStore.dispatch({
-                        type: "REPLACE_THIS_AND_THAT",
-                        payload: newState
-                  })
-            })
-
-            // sink Redux to Remmi
-            return reduxStore.subscribe(sink)
-      })
-)
-remmiStore.select("users").subscribe(/*etc */)
-
-cancel() // stop syncing
-```
----
-
 # Gotchas
 
-* optimize: don't create selectors inline
-* don't accidentally return, like: `lens.update(x => x.y += 2)`
+_TODO: work out this section_
+
+* optimize: don't create selectors inline, but lift them
+* don't accidentally return, like: `lens.update(x => x.y += 2)`, use `void`, see immer
 * using `nothing` from immer
 
-# Credits
+# Roadmap
 
-Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi just stole ideas left and right):
-* Materialized views in databases (see also: [turning the database inside out](https://www.youtube.com/watch?v=fU9hR3kiOK0))
-* Reactive streams like RxJS as immutable data distributing mechanism
-* Lense libraries (like baobab) to create a partially view on the state
-* MobX for reactive, sychnronous, atomic, glitchfree distribution of changes using a dependency tree
-* MobX-state-tree for providing models around immutable state
-
-# Things to do
+_This project is not actively maintained! So far, it has been a proof-of-concept. If you like the concept though, feel free to open an issue and consider becoming a maintainer, in which case this library might have a bright future! Without maintainers, it will no be actively developed any further._
 
 * [ ] warn on cold reads
-* [ ] kill models?
-* [ ] kill change propagation model?
 * [ ] multiple args to select
 * [ ] write and generate documents
 * [ ] use hooks
+* [ ] fix todo example
+* [ ] by / groupBy (field) transformation
+* [ ] process `// TODO:` & `// optimization:` comments in the code base
 
-## Later
+** Later **
 
+* [ ] different change propagation model that doesn't require 2 depth first walks?
 * [ ] join?
 * [ ] `.all()`, `.renderAll()` and `.mapReduce()` should detect splices (and not pass keys for arrays to handlers).
 * [ ] api to subscribe to patchespatch subscriptoin
@@ -370,8 +371,18 @@ Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi ju
 * [ ] generators: connect(generator), toGenerator: async* fn
 * [ ] fix optimization and todo comments
 
-# Summary
+# FAQ
 
-A designer can mull over complicated designs for months. Then suddenly the simple, elegant, beautiful solution occurs to him. When it happens to you, it feels as if God is talking! And maybe He is.
+Is Remmi better than MobX? Well, that is not mine to decide :-). But my initial guess: No. And so far this is just an experimental package.
+It is less efficient and syntactically more verbose. However if you prefer a single-immutable-value-source of truth, with less magic. You might fancy this one.
+Especially since many more, more powerful transformations could be produced!
 
-— Leo Frankowski
+
+# Credits
+
+Remmi stands on the shoulders of giants (which is a nice way of saying: Remmi just stole ideas left and right):
+* Materialized views in databases (see also: [turning the database inside out](https://www.youtube.com/watch?v=fU9hR3kiOK0))
+* Reactive streams like RxJS as immutable data distributing mechanism
+* Lense libraries (like baobab) to create a partially view on the state
+* MobX for reactive, sychnronous, atomic, glitchfree distribution of changes using a dependency tree
+* MobX-state-tree for providing models around immutable state

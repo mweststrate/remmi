@@ -57,6 +57,28 @@ export class Tracker {
     }
 }
 
+/**
+ * autorun takes a function, will run it once, and then will re-run every time that a cursor
+ * that was dereferenced (using `.value()`) in the function changes. In other words,
+ * it is basically an automatic `merge` + `subscribe` of cursors.
+ *
+ * Autorun is able to handle dynamically changing dependencies, that is, the set of cursors used is allowed to vary over time.
+ *
+ * @example
+ * const myAge = createStore(20)
+ * const yourAge = createStore(30)
+ * autorun(() => {
+ *   const avg = (myAge.value() + yourAge.value()) / 2
+ *   console.log("Our average age is now: " + avg)
+ * })
+ * // prints 25
+ * myAge.update(40)
+ * // prints 35
+ *
+ * @export
+ * @param {() => void} fn
+ * @returns {Disposer}
+ */
 export function autorun(fn: () => void): Disposer {
     const t = new Tracker(() => {
         t.track(fn)

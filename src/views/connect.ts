@@ -13,6 +13,7 @@ export type IConnectionHandler<T = any> = (
  * and that update is not superfluously called during a subscription. (For asynchronous processes
  * this might not be sufficient, in which case one might to keep some adminstration for that in the handler).
  *
+ * @export
  * @example
  * // This set's up a bidirectional sink between two remmi lenses
  * let disposer = store1.do(connect((subscribe, sink) => {
