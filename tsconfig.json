@@ -8,10 +8,12 @@
     "sourceMap": true,
     "outDir": "./dist",
     "strict": true,
+    "noImplicitAny": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "downlevelIteration": true,
     "jsx": "react"
   },
   "files": [
