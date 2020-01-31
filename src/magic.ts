@@ -142,21 +142,18 @@ class TrackingState {
   }
 }
 
-export function track(
-  base: any,
-  fn: (value, grab) => any,
+export function track<T, R>(
+  datasource: DataSource<T>,
+  fn: (value: T) => R,
   autoGrab = false
-): {value: any; trackingState: TrackingState} {
-  if (handleAsReference(base))
-    throw new Error('Root should be immutable data structure')
+): {result: R; trackingState: TrackingState} {
   try {
     currentlyTracking = new TrackingState()
-
-    const proxied = proxyValue(base, undefined, undefined)
-
-    let res = fn(proxied, grab)
-    // TODO:    if (autoGrab) res = autoGrabber(res, grab)
-    return {value: res, trackingState: currentlyTracking}
+    let result = fn(datasource.get())
+    if (autoGrab) {
+      result = autoGrabber(result)
+    }
+    return { result, trackingState: currentlyTracking}
   } finally {
     currentlyTracking = undefined
   }
@@ -168,23 +165,22 @@ export function current(lens) {
   return lensState.read(true) // TODO: should apply current to the result if lens?
 }
 
-function autoGrabber(base, grab) {
-  // TODO: avoid the need on grab, pick it globally?
+function autoGrabber(base) {
   if (handleAsReference(base)) return base
-  if (isLens(base)) return grab(base)
+  if (isLens(base)) return current(base)
   // TODO: map and set
   if (Array.isArray(base)) {
     for (let i = 0; i < base.length; i++) {
       const value = base[i]
-      if (isLens(value)) base[i] = grab(value)
-      else autoGrabber(value, grab) // recurse
+      if (isLens(value)) base[i] = current(value)
+      else autoGrabber(value)
     }
   } else {
     for (const i in base) {
       // TODO: dedupe
       const value = base[i]
-      if (isLens(value)) base[i] = grab(value)
-      else autoGrabber(value, grab) // recurse
+      if (isLens(value)) base[i] = current(value)
+      else autoGrabber(value)
     }
   }
   return base
