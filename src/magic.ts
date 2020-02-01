@@ -1,5 +1,6 @@
 type Thunk = () => void
 const STATE = Symbol('rememo')
+const KEYS = Symbol('rememo-keys')
 
 let currentlyTracking: TrackingState | undefined = undefined
 
@@ -85,9 +86,12 @@ class LensState {
           }
           this.children.get('length')?.update(newValue.length, pending)
         } else {
-          const newKeys = new Set<PropertyKey>(Object.keys(newValue))
+          const keys = Reflect.ownKeys(newValue)
+          const newKeysSet = new Set(keys)
           this.children.forEach((child: LensState, prop) => {
-            if (!newKeys.has(prop)) {
+            if (prop === KEYS) {
+              child.update(keys, pending)
+            } else if (!newKeysSet.has(prop)) {
               this.clearChild(prop, pending)
             } else {
               child.update(newValue[prop], pending)
@@ -216,7 +220,7 @@ const handlers: ProxyHandler<any> = {
     if (prop === STATE) return state
     // TODO: if we support ES5, we should warn if trying to read a non-existing property!
     const child =
-      state.children.get(prop) || createProxy(state.base[prop], state, prop)
+      state.children.get(prop) || createProxy(prop === KEYS ? Reflect.ownKeys(state.base) : state.base[prop], state, prop)
     return child.read()
   },
   getPrototypeOf(target) {
@@ -234,13 +238,8 @@ const handlers: ProxyHandler<any> = {
   has(target, p: PropertyKey) {
     return Reflect.has(target.base, p)
   },
-  enumerate(target) {
-    // TODO: emnumeration should be detected as well!
-    return Reflect.enumerate(target.base) as any
-  },
   ownKeys(target) {
-    // TODO: enumeration should be detected as well!
-    return Reflect.ownKeys(target.base)
+    return target.proxy[KEYS]
   },
   set() {
     // TODO: dedupe error msgs below

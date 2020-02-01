@@ -1,29 +1,30 @@
-import { useRef, memo, useState, useContext, useMemo, useEffect, useCallback, createElement } from "react"
-import { track, createStore, TrackingState, DataSource  } from "./remmi"
+import { useRef, memo, useState, useEffect, useCallback, createElement } from "react"
+import { track, createStore, DataSource  } from "./remmi"
 
 export function tracking<P>(component: React.FC<P>): React.FC<P>
 export function tracking(component: React.FC<any>) {
-    if (!component.displayName) {
-        component.displayName = component.name
-    }
-    const Inner = memo(function({store}: {store: DataSource}) {
+    function inner({store}: {store: DataSource}) {
         const forceUpdate = useForceUpdate()
         const { result, trackingState } = track(store, component)
-
+        
         useEffect(() => {
             return trackingState.subscribe(forceUpdate)
         }, [trackingState])
-
+        
         return result
-    })
+    }
+    inner.displayName = component.displayName || component.name;
+    // TODO: hoist special statics?
+    const Inner = memo(inner)
 
     const Outer: React.FC = function(props) {
         const storeRef = useRef(createStore(props))
-        const propsRef = useRef({ store: storeRef.current })
+        // TODO: somehow treat children as ref as well, and not as datastructure?
+        // e.g. pull them out first or detect that type? give custom isReference handler to store?
         storeRef.current.set(props)
-        return createElement(Inner, propsRef.current)
+        return createElement(Inner, { store: storeRef.current })
     }
-    Outer.displayName = `tracking(${component.displayName || component.name})`
+    Outer.displayName = `tracking(${inner.displayName})`
     return Outer
 }
 
