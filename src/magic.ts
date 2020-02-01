@@ -3,7 +3,8 @@ const STATE = Symbol('rememo')
 
 let currentlyTracking: TrackingState | undefined = undefined
 
-class DataSource<T> {
+// TODO: create interface
+export class DataSource<T=any> {
   readonly root: LensState
 
   constructor(initial: T) {
@@ -23,6 +24,10 @@ class DataSource<T> {
       tracker.notifyChanged()
     })
   }
+}
+
+export function createStore<T>(initial: T): DataSource<T> {
+  return new DataSource(initial)
 }
 
 class LensState {
@@ -61,9 +66,9 @@ class LensState {
     const oldValue = this.base
     this.base = newValue
     const isRef = (this.isRef = handleAsReference(newValue))
-    if (wasRef && !isRef) {
+    if (!wasRef && isRef) {
       this.clearAllChildren(pending)
-    } else if (wasRef && this.isRef) {
+    } else if (!wasRef && !this.isRef) {
       // TODO: support map and set as well
       const isArray = Array.isArray(newValue)
       if (isArray !== wasArray) {
@@ -73,11 +78,12 @@ class LensState {
         if (isArray) {
           const common = Math.min(newValue.length, oldValue.length)
           for (let i = 0; i < common; i++) {
-            this.children.get('' + i).update(newValue[i], pending)
+            this.children.get('' + i)!.update(newValue[i], pending)
           }
           for (let i = common; i < oldValue.length; i++) {
             this.clearChild('' + i, pending)
           }
+          this.children.get('length')?.update(newValue.length, pending)
         } else {
           const newKeys = new Set<PropertyKey>(Object.keys(newValue))
           this.children.forEach((child: LensState, prop) => {
@@ -119,7 +125,7 @@ function createProxy(
   // @ts-ignore
   lensstate.proxy = proxy
   if (parent) {
-    parent.children.set(prop, lensstate)
+    parent.children.set(prop!, lensstate)
   }
   return lensstate
 }
@@ -128,16 +134,25 @@ export function isLens(thing): thing is {[STATE]: LensState} {
   return thing && thing[STATE] ? true : false
 }
 
-class TrackingState {
-  dependencies = new Set<LensState>()
-  subscribers: Thunk[] = []
+export class TrackingState { // TODO: create interface
+  readonly dependencies = new Set<LensState>()
+  public changed = false
+  onChange?: Thunk
 
-  notifyChanged() {
-    this.subscribers.splice(0).forEach(f => f())
+  subscribe(onChange: Thunk): Thunk {
+    if (this.onChange) throw new Error("onChange already set")
+    this.onChange = onChange
+    if (this.changed) this.notifyChanged() // changed before subscription happened, invalidate now
+    return this.dispose
   }
 
-  dispose() {
-    this.subscribers.splice(0)
+  notifyChanged() {
+    this.changed = true
+    this.onChange?.()
+    this.dispose()
+  }
+
+  dispose = () => {
     this.dependencies.forEach(lens => lens.subscribers.delete(this))
   }
 }
@@ -205,25 +220,27 @@ const handlers: ProxyHandler<any> = {
     return child.read()
   },
   getPrototypeOf(target) {
-    return Reflect.getPrototypeOf(target)
+    return Reflect.getPrototypeOf(target.base)
   },
   isExtensible(target) {
-    return Reflect.isExtensible(target)
+    return Reflect.isExtensible(target.base)
   },
   preventExtensions(target) {
-    return Reflect.preventExtensions(target)
+    return Reflect.preventExtensions(target.base)
   },
   getOwnPropertyDescriptor(target, p) {
-    return Reflect.getOwnPropertyDescriptor(target, p)
+    return Reflect.getOwnPropertyDescriptor(target.base, p)
   },
   has(target, p: PropertyKey) {
-    return Reflect.has(target, p)
+    return Reflect.has(target.base, p)
   },
   enumerate(target) {
-    return Reflect.enumerate(target) as any
+    // TODO: emnumeration should be detected as well!
+    return Reflect.enumerate(target.base) as any
   },
   ownKeys(target) {
-    return Reflect.ownKeys(target)
+    // TODO: enumeration should be detected as well!
+    return Reflect.ownKeys(target.base)
   },
   set() {
     // TODO: dedupe error msgs below

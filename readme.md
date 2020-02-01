@@ -1,6 +1,6 @@
 
 
-
+* [ ] store debug info with path and such if needed
 * [ ] throw if proxy used outside tracking
 * [ ] external grab function
 * [ ] distribute proxies to other contexts
