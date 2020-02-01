@@ -8,11 +8,31 @@ import {
 } from 'react'
 import {track, createStore, DataSource} from './remmi'
 
-export function tracking<P>(component: React.FC<P>): React.FC<P>
-export function tracking(component: React.FC<any>) {
+// TODO: combine deepMemo / tracking
+export function tracking<P>(component: React.FC<P>, autoGrab?: boolean): React.FC<P>
+export function tracking(component: React.FC<any>, autoGrab?: boolean) {
+    const wrapped = function(props) {
+        const forceUpdate = useForceUpdate()
+        const {result, trackingState} = track(props, component, autoGrab)
+        useEffect(() => trackingState.subscribe(forceUpdate), [trackingState])
+        return result
+    }
+    wrapped.displayName = `tracking(${component.displayName || component.name})`
+    // TODO: hoist statics
+    return memo(wrapped)
+}
+
+export function useLens() {
+    
+}
+
+// TODO: test autoGrab
+// TODO: kill?
+export function autoMemo<P>(component: React.FC<P>, autoGrab?: boolean): React.FC<P>
+export function autoMemo(component: React.FC<any>, autoGrab?: boolean) {
   function inner({store}: {store: DataSource}) {
     const forceUpdate = useForceUpdate()
-    const {result, trackingState} = track(store, component)
+    const {result, trackingState} = track(store.get(), component, autoGrab)
 
     useEffect(() => trackingState.subscribe(forceUpdate), [trackingState])
 
@@ -20,7 +40,7 @@ export function tracking(component: React.FC<any>) {
   }
   inner.displayName = component.displayName || component.name
   // TODO: hoist special statics?
-  const Inner = memo(inner)
+  const Inner = memo(inner) //, () => true) // TODO: with ()=>true theoretically faster, but makes tree deeper // optimization: extra closure
 
   const Outer: React.FC = function(props) {
     const storeRef = useRef(createStore(props))
@@ -29,7 +49,7 @@ export function tracking(component: React.FC<any>) {
     storeRef.current.set(props)
     return createElement(Inner, {store: storeRef.current})
   }
-  Outer.displayName = `tracking(${inner.displayName})`
+  Outer.displayName = `autoMemo(${inner.displayName})`
   return Outer
 }
 

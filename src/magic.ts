@@ -4,6 +4,7 @@ const KEYS = Symbol('rememo-keys')
 
 let currentlyTracking: TrackingState | undefined = undefined
 
+// TODO: change dataSource to be a Lens as well, and expose set / current as separate api's?
 // TODO: create interface
 export class DataSource<T=any> {
   readonly root: LensState
@@ -29,6 +30,7 @@ export class DataSource<T=any> {
 
 export function createStore<T>(initial: T): DataSource<T> {
   return new DataSource(initial)
+  // TODO: or return dataSource.root, and expose a `set` api?
 }
 
 class LensState {
@@ -162,13 +164,13 @@ export class TrackingState { // TODO: create interface
 }
 
 export function track<T, R>(
-  datasource: DataSource<T>,
+  base: T,
   fn: (value: T) => R,
   autoGrab = false
 ): {result: R; trackingState: TrackingState} {
   try {
     currentlyTracking = new TrackingState()
-    let result = fn(datasource.get())
+    let result = fn(base)
     if (autoGrab) {
       result = autoGrabber(result)
     }
@@ -181,26 +183,25 @@ export function track<T, R>(
 export function current(lens) {
   if (!isLens(lens)) throw new Error('Expected lens')
   const lensState: LensState = lens[STATE]
-  return lensState.read(true) // TODO: should apply current to the result if lens?
+  const res = lensState.read(true)
+  if (isLens(res)) return current(res)
+  return res
 }
 
 function autoGrabber(base) {
-  if (handleAsReference(base)) return base
   if (isLens(base)) return current(base)
+  if (handleAsReference(base)) return base
   // TODO: map and set
   if (Array.isArray(base)) {
-    for (let i = 0; i < base.length; i++) {
-      const value = base[i]
-      if (isLens(value)) base[i] = current(value)
-      else autoGrabber(value)
-    }
+    // TODO: can be optimized by using immer?
+    return base.map(autoGrabber)
   } else {
+    const res = {}
     for (const i in base) {
-      // TODO: dedupe
-      const value = base[i]
-      if (isLens(value)) base[i] = current(value)
-      else autoGrabber(value)
+      // TODO: non-enumerables, prototype and such?
+      res[i] = autoGrabber(base[i])
     }
+    return res;
   }
   return base
 }

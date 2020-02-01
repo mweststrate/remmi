@@ -1,13 +1,19 @@
 
 
-* [ ] store debug info with path and such if needed
-* [ ] throw if proxy used outside tracking
-* [ ] external grab function
-* [ ] distribute proxies to other contexts
-* [ ] recycle proxies?
+* [ ] nested items
 * [ ] Map / Set support
-* [ ] support for non immutables (treat as primitives)
-* [ ] use weakmap or map in parent or something instead of storing state on the target
-* [ ] make isLens work, retract meta data after finish
+* [ ] store debug info with path and such if needed
+* [x] external grab function
+* [ ] distribute proxies to other contexts
+* [x] recycle proxies?
+* [x] support for non immutables (treat as primitives)
+* [x] make isLens work, retract meta data after finish
 * [ ] typings
 * [ ] ES5 mode + warn about missing items in Proxy mode
+* [ ] trackStore
+* [ ] trackReduxStore
+* [ ] trackSelector
+* [ ] autorun / when / computeds?
+* [ ] error handling in components
+* [ ] don't double wrap in traking?
+* [ ] document effect on hooks, updates, etc
