@@ -13,8 +13,9 @@ export class DataSource<T=any> {
     this.root = createProxy(initial)
   }
 
-  get(): T {
-    return this.root.read()
+  // TODO: remove this api
+  get(grab?: boolean): T {
+    return this.root.read(grab)
   }
 
   set(next: T) {
@@ -40,6 +41,7 @@ class LensState {
   base: any
   readonly proxy!: any
   isRef: boolean
+  // TODO: store parent / prop or path, so that we can print nice error messages,
 
   constructor(base) {
     this.isRef = handleAsReference(base)
@@ -55,6 +57,9 @@ class LensState {
       }
       return this.base
     } else {
+      if (!currentlyTracking) {
+        console.warn("Lenses should not be read directly outside a tracking context. Use a tracking context or use current if you want to peek at the current value of the lens")
+      }
       return this.proxy
     }
   }
@@ -164,7 +169,7 @@ export class TrackingState { // TODO: create interface
 }
 
 export function track<T, R>(
-  base: T,
+  base: T, // TODO: as second or last argument
   fn: (value: T) => R,
   autoGrab = false
 ): {result: R; trackingState: TrackingState} {

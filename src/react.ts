@@ -6,7 +6,15 @@ import {
   useCallback,
   createElement
 } from 'react'
-import {track, createStore, DataSource} from './remmi'
+import {track, createStore, DataSource, current} from './remmi'
+
+export function useStore<T>(initial:  T | (() => T)): [T, (updater: (current: T) => T) => void] {
+    const [store] = useState(() => createStore((typeof initial === "function") ? initial() : initial))
+    const updater = useCallback(updater => {
+        store.set(updater((store.get(true))))
+    }, []) // Optimize: extract arr
+    return [store.get(), updater]
+}
 
 // TODO: combine deepMemo / tracking
 export function tracking<P>(component: React.FC<P>, autoGrab?: boolean): React.FC<P>
@@ -20,10 +28,6 @@ export function tracking(component: React.FC<any>, autoGrab?: boolean) {
     wrapped.displayName = `tracking(${component.displayName || component.name})`
     // TODO: hoist statics
     return memo(wrapped)
-}
-
-export function useLens() {
-    
 }
 
 // TODO: test autoGrab

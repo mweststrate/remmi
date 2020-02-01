@@ -16,4 +16,6 @@
 * [ ] autorun / when / computeds?
 * [ ] error handling in components
 * [ ] don't double wrap in traking?
-* [ ] document effect on hooks, updates, etc
+* [ ] document effect on hooks, updates, etc: current ftw
+* [ ] `subscribe` and `useLens`
+* [ ] redux integration
