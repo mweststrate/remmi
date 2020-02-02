@@ -6,17 +6,16 @@ import {
   useCallback,
   createElement
 } from 'react'
-import {track, createStore, DataSource, current} from './remmi'
+import {track, createStore, update, current} from './remmi'
 
 export function useStore<T>(initial:  T | (() => T)): [T, (updater: (current: T) => T) => void] {
-    const [store] = useState(() => createStore((typeof initial === "function") ? initial() : initial))
+    const [rootLens] = useState(() => createStore((typeof initial === "function") ? initial() : initial))
     const updater = useCallback(updater => {
-        store.set(updater((store.get(true))))
+        update(rootLens, updater(current(rootLens)))
     }, []) // Optimize: extract arr
-    return [store.get(), updater]
+    return [rootLens, updater]
 }
 
-// TODO: combine deepMemo / tracking
 export function tracking<P>(component: React.FC<P>, autoGrab?: boolean): React.FC<P>
 export function tracking(component: React.FC<any>, autoGrab?: boolean) {
     const wrapped = function(props) {
@@ -30,13 +29,12 @@ export function tracking(component: React.FC<any>, autoGrab?: boolean) {
     return memo(wrapped)
 }
 
-// TODO: test autoGrab
 // TODO: kill?
 export function autoMemo<P>(component: React.FC<P>, autoGrab?: boolean): React.FC<P>
 export function autoMemo(component: React.FC<any>, autoGrab?: boolean) {
-  function inner({store}: {store: DataSource}) {
+  function inner({store}: {store: any}) {
     const forceUpdate = useForceUpdate()
-    const {result, trackingState} = track(store.get(), component, autoGrab)
+    const {result, trackingState} = track(store, component, autoGrab)
 
     useEffect(() => trackingState.subscribe(forceUpdate), [trackingState])
 
@@ -50,7 +48,7 @@ export function autoMemo(component: React.FC<any>, autoGrab?: boolean) {
     const storeRef = useRef(createStore(props))
     // TODO: somehow treat children as ref as well, and not as datastructure?
     // e.g. pull them out first or detect that type? give custom isReference handler to store?
-    storeRef.current.set(props)
+    update(storeRef.current, props)
     return createElement(Inner, {store: storeRef.current})
   }
   Outer.displayName = `autoMemo(${inner.displayName})`

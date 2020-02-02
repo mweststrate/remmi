@@ -4,34 +4,21 @@ const KEYS = Symbol('rememo-keys')
 
 let currentlyTracking: TrackingState | undefined = undefined
 
-// TODO: change dataSource to be a Lens as well, and expose set / current as separate api's?
-// TODO: create interface
-export class DataSource<T=any> {
-  readonly root: LensState
-
-  constructor(initial: T) {
-    this.root = createProxy(initial)
-  }
-
-  // TODO: remove this api
-  get(grab?: boolean): T {
-    return this.root.read(grab)
-  }
-
-  set(next: T) {
-    // optimization: if we now the max set of tracking states, we
-    // could maybe stop diffing if we saw them all?
-    const pendingUpdates = new Set<TrackingState>()
-    this.root.update(next, pendingUpdates)
-    pendingUpdates.forEach(tracker => {
-      tracker.notifyChanged()
-    })
-  }
+export function update(lens, next) {
+  if (!isLens(lens)) throw new Error("Nope") // TODO: better error
+  const state: LensState = lens[STATE]
+  if (state.parent) throw new Error("Nope nope") // TODO: better error
+  // optimization: if we now the max set of tracking states, we
+  // could maybe stop diffing if we saw them all?
+  const pendingUpdates = new Set<TrackingState>()
+  state.update(next, pendingUpdates)
+  pendingUpdates.forEach(tracker => {
+    tracker.notifyChanged()
+  })
 }
 
-export function createStore<T>(initial: T): DataSource<T> {
-  return new DataSource(initial)
-  // TODO: or return dataSource.root, and expose a `set` api?
+export function createStore<T>(initial: T): T { // TODO: rename to createRootLens
+  return createProxy(initial).proxy
 }
 
 class LensState {
@@ -41,11 +28,15 @@ class LensState {
   base: any
   readonly proxy!: any
   isRef: boolean
+  parent?: LensState
+  prop?: PropertyKey
   // TODO: store parent / prop or path, so that we can print nice error messages,
 
-  constructor(base) {
-    this.isRef = handleAsReference(base)
+  constructor(base, parent?: LensState, prop?: PropertyKey) {
+    this.parent = parent
+    this.prop = prop
     this.base = base
+    this.isRef = handleAsReference(base)
   }
 
   read(grab?: boolean) {
@@ -86,7 +77,8 @@ class LensState {
         if (isArray) {
           const common = Math.min(newValue.length, oldValue.length)
           for (let i = 0; i < common; i++) {
-            this.children.get('' + i)!.update(newValue[i], pending)
+            const child = this.children.get('' + i)
+            child?.update(newValue[i], pending)
           }
           for (let i = common; i < oldValue.length; i++) {
             this.clearChild('' + i, pending)
@@ -131,7 +123,7 @@ function createProxy(
   parent?: LensState,
   prop?: PropertyKey
 ): LensState {
-  const lensstate = new LensState(value)
+  const lensstate = new LensState(value, parent, prop)
   const proxy = new Proxy(lensstate, handlers)
   // @ts-ignore
   lensstate.proxy = proxy
