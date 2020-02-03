@@ -1,21 +1,28 @@
 
+1.0
 
-* [ ] nested items
-* [ ] Map / Set support
+* [x] nested items
+* [ ] Map support
 * [ ] store debug info with path and such if needed
 * [x] external grab function
-* [ ] distribute proxies to other contexts
+* [x] distribute proxies to other contexts
 * [x] recycle proxies?
 * [x] support for non immutables (treat as primitives)
 * [x] make isLens work, retract meta data after finish
 * [ ] typings
-* [ ] ES5 mode + warn about missing items in Proxy mode
-* [ ] trackStore
+* [x] trackStore
 * [ ] trackReduxStore
-* [ ] trackSelector
-* [ ] autorun / when / computeds?
-* [ ] error handling in components
-* [ ] don't double wrap in traking?
+* [x] don't double wrap in traking?
 * [ ] document effect on hooks, updates, etc: current ftw
 * [ ] `subscribe` and `useLens`
-* [ ] redux integration
+
+1.1
+* [ ] computed / computed lens
+* [ ] autorun / when / computeds?
+* [ ] trackSelector
+* [ ] ES5 mode + warn about missing items in Proxy mode
+
+1.2
+
+* [ ] `lensFromPath(lens, path|string)`
+* [ ] `Set` support

@@ -1,92 +1,88 @@
-import {createStore, track, nodeHasChanges, isLens} from "./remmi"
+import {createStore, track, isLens} from './remmi'
+import {update, current} from './magic'
 
-describe("base tracking", () => {
-    test("1", () => {
-        const {trackingState, value} = track(createStore({ a: 1 }), (_x) => 3)
-        expect(value).toBe(3)
-        expect(nodeHasChanges(trackingState, {})).toBeFalsy();
-    })
+function simpleTest<T, R>(
+  baseState: T,
+  trackFn: (v: T) => R,
+  newState: T,
+  shouldTrigger: boolean
+) {
+  const lens = createStore(baseState)
 
-    test("2", () => {
-        const base = {a: 1}
-        const {trackingState, value} = track(base, x => x.a)
-        expect(value).toBe(1)
-        expect(nodeHasChanges(trackingState, base)).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: 1})).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: 1, b: 1})).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: 2})).toBeTruthy();
-    })
+  const {trackingState} = track(lens, trackFn)
+  let changed = false
+  trackingState.subscribe(() => {
+    changed = true
+  })
 
-    test("3", () => {
-        const base = {a: 1}
-        const {trackingState, value} = track(base, x => x.b)
-        expect(value).toBe(undefined)
-        expect(nodeHasChanges(trackingState, base)).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: 1})).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: 1, b: undefined})).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: 1, b: 2})).toBeTruthy();
-    })
+  update(lens, newState)
+  expect(changed).toBe(shouldTrigger)
+}
 
-    test("4", () => {
-        const base = {a: {b: 2}}
-        const {trackingState, value} = track(base, x => x.a.b)
-        expect(value).toBe(2)
-        expect(nodeHasChanges(trackingState, base)).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: { b: 2 }})).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: 1, b: 1})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {a: 2})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {b: 2, a: { b: 2, c: 3 }})).toBeFalsy();
-    })
+test('simple object tracking', () => {
+  simpleTest({x: 1}, s => s.x, {x: 2}, true)
+  simpleTest({x: 1}, s => s.x, {x: 1}, false)
+  simpleTest({x: 1}, s => s.x, {x: 1, y: 2}, false)
+  simpleTest({x: 1}, s => s.x, {}, true)
+  simpleTest({x: 1}, s => Object.keys(s), {y: 0}, true)
+  simpleTest({x: 1}, s => Object.keys(s), {x: 0}, false)
+  simpleTest({x: 1}, s => Object.entries(s), {x: 0}, true)
+  simpleTest({x: 1}, s => Object.entries(s), {x: 1}, false)
+  simpleTest({x: 1}, s => Object.entries(s), {}, true)
+  simpleTest({x: 1}, s => Object.entries(s), {x: 1, y: 2}, true)
+})
 
-    test("return object", () => {
-        const base = {a: {b: 2}}
-        const {trackingState, value} = track(base, x => x.a)
-        expect(value).toEqual(base.a)
-        expect(value).not.toBe(base.a) // proxy
-        expect(isLens(value)).toBeTruthy();
-        expect(nodeHasChanges(trackingState, base)).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: { b: 3 }})).toBeFalsy(); // cause same lense is returned!
-        expect(nodeHasChanges(trackingState, {a: { b: 2 }})).toBeFalsy(); // cause same lense is returned!
-        expect(nodeHasChanges(trackingState, {a: 1, b: 1})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {a: 2})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {b: 2, a: base.a})).toBeFalsy();
-    })
+test('simple array tracking', () => {
+  simpleTest([1, 2, 3], s => s[1], [1, 3], true)
+  simpleTest([1, 2, 3], s => s[1], [], true)
+  simpleTest([1, 2, 3], s => s[1], [1, 2], false)
 
-    test("4 - with grab", () => {
-        const base = {a: {b: 2}}
-        const {trackingState, value} = track(base, (x, grab) => {
-            expect(x.a).not.toBe(base.a)
-            expect(x.a).toEqual(base.a)
-            expect(grab(x.a)).toBe(base.a)
-            return grab(x.a)
-        })
-        expect(value).toBe(base.a)
-        // expect(isLens(value)).toBeFalsy() // TODO:
-        expect(nodeHasChanges(trackingState, base)).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: { b: 2 }})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {a: 1, b: 1})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {a: 2})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {b: 2, a: { b: 2, c: 3 }})).toBeTruthy();
-    })
+  simpleTest([1, 2, 3], s => s.map(x => x + 1), [1, 2], true)
+  simpleTest([1, 2, 3], s => s.map(x => x + 1), [1, 2, 3], false)
+  simpleTest([1, 2, 3], s => s.map(x => x + 1), [3, 2, 1], true)
 
-    test("return object with auto grab - 1", () => {
-        const base = {a: {b: 2}}
-        const {trackingState, value} = track(base, x => x.a, true)
-        expect(value).toBe(base.a)
-        // expect(isLens(value)).toBeFalsy() // TODO:
-        expect(nodeHasChanges(trackingState, base)).toBeFalsy();
-        expect(nodeHasChanges(trackingState, { a: base.a, b: 2})).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {a: { b: 2 }})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {a: 1, b: 1})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {a: 2})).toBeTruthy();
-        expect(nodeHasChanges(trackingState, {b: 2, a: { b: 2, c: 3 }})).toBeTruthy();
-    })
+  simpleTest([1, 2], s => Array.from(s), [1, 2], false)
+  simpleTest([1, 2], s => Array.from(s), [1, 3], true)
+})
 
-    test("return object with auto grab - 1", () => {
-        const base = {a: {b: 2}}
-        const {trackingState, value} = track(base, x => ({ thing: x }), true)
-        expect(value.thing).toBe(base)
-        expect(nodeHasChanges(trackingState, base)).toBeFalsy();
-        expect(nodeHasChanges(trackingState, {})).toBeTruthy();
-    })
+test('isLens', () => {
+  const x = createStore({x: {y: 1}, z: 2})
+  expect(isLens(x)).toBe(true)
+  expect(isLens(x.x)).toBe(true)
+  // TODO: supress warnings
+  expect(isLens(x.x.y)).toBe(false)
+  expect(isLens(x.z)).toBe(false)
+})
+
+test('object + current', () => {
+  simpleTest({x: 1}, s => s, {x: 1}, false)
+  simpleTest({x: 1}, s => s, {}, false)
+  simpleTest({x: 1}, s => s, {x: 2}, false)
+
+  simpleTest({x: 1}, s => current(s), {x: 1}, true)
+  const base = {x: 1}
+  simpleTest(base, s => current(s), base, false)
+})
+
+test('deep', () => {
+  simpleTest(
+    {x: {y: {z: 1, zz: 2}}, a: {}},
+    s => s.x.y.z,
+    {x: {y: {z: 1}}},
+    false
+  )
+
+  simpleTest(
+    {x: {y: {z: 1, zz: 2}}, a: {}},
+    s => s.x.y.z,
+    {x: {y: {z: 2}}},
+    true
+  )
+
+  simpleTest(
+    {x: {y: {z: 1, zz: 2}}, a: {}},
+    s => s.x.y.z,
+    {x: {y: {z: 1, zz: 3}}},
+    false
+  )
 })

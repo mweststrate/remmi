@@ -5,9 +5,9 @@ const KEYS = Symbol('rememo-keys')
 let currentlyTracking: TrackingState | undefined = undefined
 
 export function update(lens, next) {
-  if (!isLens(lens)) throw new Error("Nope") // TODO: better error
+  if (!isLens(lens)) throw new Error('Nope') // TODO: better error
   const state: LensState = lens[STATE]
-  if (state.parent) throw new Error("Nope nope") // TODO: better error
+  if (state.parent) throw new Error('Nope nope') // TODO: better error
   // optimization: if we now the max set of tracking states, we
   // could maybe stop diffing if we saw them all?
   const pendingUpdates = new Set<TrackingState>()
@@ -17,7 +17,8 @@ export function update(lens, next) {
   })
 }
 
-export function createStore<T>(initial: T): T { // TODO: rename to createRootLens
+export function createStore<T>(initial: T): T {
+  // TODO: rename to createRootLens
   return createProxy(initial).proxy
 }
 
@@ -49,7 +50,9 @@ class LensState {
       return this.base
     } else {
       if (!currentlyTracking) {
-        console.warn("Lenses should not be read directly outside a tracking context. Use a tracking context or use current if you want to peek at the current value of the lens")
+        console.warn(
+          'Lenses should not be read directly outside a tracking context. Use a tracking context or use current if you want to peek at the current value of the lens'
+        )
       }
       return this.proxy
     }
@@ -77,8 +80,7 @@ class LensState {
         if (isArray) {
           const common = Math.min(newValue.length, oldValue.length)
           for (let i = 0; i < common; i++) {
-            const child = this.children.get('' + i)
-            child?.update(newValue[i], pending)
+            this.children.get('' + i)?.update(newValue[i], pending)
           }
           for (let i = common; i < oldValue.length; i++) {
             this.clearChild('' + i, pending)
@@ -105,7 +107,7 @@ class LensState {
   }
 
   clearChild(key: PropertyKey, pending: Set<TrackingState>) {
-    this.children.get(key)!.update(undefined, pending)
+    this.children.get(key)?.update(undefined, pending)
     this.children.delete(key) // TODO: this should be safe, right?!
   }
 
@@ -118,11 +120,7 @@ class LensState {
   }
 }
 
-function createProxy(
-  value: any,
-  parent?: LensState,
-  prop?: PropertyKey
-): LensState {
+function createProxy(value: any, parent?: LensState, prop?: PropertyKey): LensState {
   const lensstate = new LensState(value, parent, prop)
   const proxy = new Proxy(lensstate, handlers)
   // @ts-ignore
@@ -137,13 +135,14 @@ export function isLens(thing): thing is {[STATE]: LensState} {
   return thing && thing[STATE] ? true : false
 }
 
-export class TrackingState { // TODO: create interface
+export class TrackingState {
+  // TODO: create interface
   readonly dependencies = new Set<LensState>()
   public changed = false
   onChange?: Thunk
 
   subscribe(onChange: Thunk): Thunk {
-    if (this.onChange) throw new Error("onChange already set")
+    if (this.onChange) throw new Error('onChange already set')
     this.onChange = onChange
     if (this.changed) this.notifyChanged() // changed before subscription happened, invalidate now
     return this.dispose
@@ -152,6 +151,7 @@ export class TrackingState { // TODO: create interface
   notifyChanged() {
     this.changed = true
     this.onChange?.()
+    // TODO: if all lenses originated from 1 root lens, this wouldn't be needed
     this.dispose()
   }
 
@@ -171,7 +171,7 @@ export function track<T, R>(
     if (autoGrab) {
       result = autoGrabber(result)
     }
-    return { result, trackingState: currentlyTracking}
+    return {result, trackingState: currentlyTracking}
   } finally {
     currentlyTracking = undefined
   }
@@ -198,7 +198,7 @@ function autoGrabber(base) {
       // TODO: non-enumerables, prototype and such?
       res[i] = autoGrabber(base[i])
     }
-    return res;
+    return res
   }
   return base
 }
@@ -206,8 +206,7 @@ function autoGrabber(base) {
 function handleAsReference(value: any): boolean {
   if (!value || typeof value !== 'object') return true
   if (isLens(value)) return true
-  if (Array.isArray(value) || value instanceof Map || value instanceof Set)
-    return false
+  if (Array.isArray(value) || value instanceof Map || value instanceof Set) return false
   const proto = Object.getPrototypeOf(value)
   if (proto === null || proto === Object.prototype) return false
   return true
@@ -218,7 +217,8 @@ const handlers: ProxyHandler<any> = {
     if (prop === STATE) return state
     // TODO: if we support ES5, we should warn if trying to read a non-existing property!
     const child =
-      state.children.get(prop) || createProxy(prop === KEYS ? Reflect.ownKeys(state.base) : state.base[prop], state, prop)
+      state.children.get(prop) ||
+      createProxy(prop === KEYS ? Reflect.ownKeys(state.base) : state.base[prop], state, prop)
     return child.read()
   },
   getPrototypeOf(target) {

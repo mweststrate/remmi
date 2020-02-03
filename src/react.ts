@@ -1,32 +1,25 @@
-import {
-  useRef,
-  memo,
-  useState,
-  useEffect,
-  useCallback,
-  createElement
-} from 'react'
+import {useRef, memo, useState, useEffect, useCallback, createElement} from 'react'
 import {track, createStore, update, current} from './remmi'
 
-export function useStore<T>(initial:  T | (() => T)): [T, (updater: (current: T) => T) => void] {
-    const [rootLens] = useState(() => createStore((typeof initial === "function") ? initial() : initial))
-    const updater = useCallback(updater => {
-        update(rootLens, updater(current(rootLens)))
-    }, []) // Optimize: extract arr
-    return [rootLens, updater]
+export function useStore<T>(initial: T | (() => T)): [T, (updater: T | ((current: T) => T)) => void] {
+  const [rootLens] = useState(() => createStore(typeof initial === 'function' ? (initial as Function)() : initial))
+  const updater = useCallback(updater => {
+    update(rootLens, typeof updater === 'function' ? updater(current(rootLens)) : updater)
+  }, []) // Optimize: extract arr
+  return [rootLens, updater]
 }
 
 export function tracking<P>(component: React.FC<P>, autoGrab?: boolean): React.FC<P>
 export function tracking(component: React.FC<any>, autoGrab?: boolean) {
-    const wrapped = function(props) {
-        const forceUpdate = useForceUpdate()
-        const {result, trackingState} = track(props, component, autoGrab)
-        useEffect(() => trackingState.subscribe(forceUpdate), [trackingState])
-        return result
-    }
-    wrapped.displayName = `tracking(${component.displayName || component.name})`
-    // TODO: hoist statics
-    return memo(wrapped)
+  const wrapped = function(props) {
+    const forceUpdate = useForceUpdate()
+    const {result, trackingState} = track(props, component, autoGrab)
+    useEffect(() => trackingState.subscribe(forceUpdate), [trackingState])
+    return result
+  }
+  wrapped.displayName = `tracking(${component.displayName || component.name})`
+  // TODO: hoist statics
+  return memo(wrapped)
 }
 
 // TODO: kill?
@@ -42,7 +35,7 @@ export function autoMemo(component: React.FC<any>, autoGrab?: boolean) {
   }
   inner.displayName = component.displayName || component.name
   // TODO: hoist special statics?
-  const Inner = memo(inner) //, () => true) // TODO: with ()=>true theoretically faster, but makes tree deeper // optimization: extra closure
+  const Inner = memo(inner, () => true) // TODO: with ()=>true theoretically faster, but makes tree deeper // optimization: extra closure
 
   const Outer: React.FC = function(props) {
     const storeRef = useRef(createStore(props))
