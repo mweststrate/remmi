@@ -1,6 +1,6 @@
 {
   "bracketSpacing": false,
-  "printWidth": 80,
+  "printWidth": 120,
   "proseWrap": "never",
   "requirePragma": false,
   "semi": false,

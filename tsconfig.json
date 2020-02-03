@@ -1,22 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
     "module": "ES2015",
     "moduleResolution": "node",
-    "lib": ["es2015"], // TODO: or ES5?
+    "lib": ["es6", "es2017.object", "dom"], // TODO: or ES5?
     "declaration": true,
     "sourceMap": true,
     "outDir": "./dist",
     "strict": true,
     "noImplicitAny": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "downlevelIteration": true,
-    "jsx": "react"
+    "jsx": "react",
+    "noEmit": true,
+    "rootDir": "src/"
   },
-  "files": [
-    "src/remmi.ts"
-  ]
+  "files": ["./src/remmi.ts"],
+  "include": ["src/*.spec.ts"],
+  "exclude": ["node_module", "dist"]
 }
