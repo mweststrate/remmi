@@ -1,22 +1,13 @@
-import {createStore, track, isLens} from './remmi'
+import {cursor, track, isCursor} from './remmi'
 import {update, current} from './magic'
 
-function simpleTest<T, R>(
-  baseState: T,
-  trackFn: (v: T) => R,
-  newState: T,
-  shouldTrigger: boolean
-) {
-  const lens = createStore(baseState)
+function simpleTest<T, R>(baseState: T, trackFn: (v: T) => R, newState: T, shouldTrigger: boolean) {
+  const l = cursor(baseState)
 
-  const {trackingState} = track(lens, trackFn)
-  let changed = false
-  trackingState.subscribe(() => {
-    changed = true
-  })
+  const {trackingState} = track(l, trackFn)
 
-  update(lens, newState)
-  expect(changed).toBe(shouldTrigger)
+  update(l, newState)
+  expect(trackingState.changed).toBe(shouldTrigger)
 }
 
 test('simple object tracking', () => {
@@ -46,12 +37,12 @@ test('simple array tracking', () => {
 })
 
 test('isLens', () => {
-  const x = createStore({x: {y: 1}, z: 2})
-  expect(isLens(x)).toBe(true)
-  expect(isLens(x.x)).toBe(true)
+  const x = cursor({x: {y: 1}, z: 2})
+  expect(isCursor(x)).toBe(true)
+  expect(isCursor(x.x)).toBe(true)
   // TODO: supress warnings
-  expect(isLens(x.x.y)).toBe(false)
-  expect(isLens(x.z)).toBe(false)
+  expect(isCursor(x.x.y)).toBe(false)
+  expect(isCursor(x.z)).toBe(false)
 })
 
 test('object + current', () => {
@@ -65,24 +56,19 @@ test('object + current', () => {
 })
 
 test('deep', () => {
-  simpleTest(
-    {x: {y: {z: 1, zz: 2}}, a: {}},
-    s => s.x.y.z,
-    {x: {y: {z: 1}}},
-    false
-  )
-
-  simpleTest(
-    {x: {y: {z: 1, zz: 2}}, a: {}},
-    s => s.x.y.z,
-    {x: {y: {z: 2}}},
-    true
-  )
-
-  simpleTest(
-    {x: {y: {z: 1, zz: 2}}, a: {}},
-    s => s.x.y.z,
-    {x: {y: {z: 1, zz: 3}}},
-    false
-  )
+  simpleTest({x: {y: {z: 1, zz: 2}}, a: {}}, s => s.x.y.z, {x: {y: {z: 1}}}, false)
+  simpleTest({x: {y: {z: 1, zz: 2}}, a: {}}, s => s.x.y.z, {x: {y: {z: 2}}}, true)
+  simpleTest({x: {y: {z: 1, zz: 2}}, a: {}}, s => s.x.y.z, {x: {y: {z: 1, zz: 3}}}, false)
 })
+
+test('isArray', () => {
+  const c = cursor([])
+  expect(Array.isArray(c)).toBe(true)
+  expect(c).toBeInstanceOf(Array)
+})
+
+// autograb
+
+// subscribe, paths and cleanup
+
+// add perf from mobx

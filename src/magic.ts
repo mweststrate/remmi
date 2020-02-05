@@ -1,12 +1,46 @@
+import {createObjectProxy, reconcileObject} from './object'
+import {createArrayProxy, reconcileArray} from './array'
+
 type Thunk = () => void
-const STATE = Symbol('rememo')
-const KEYS = Symbol('rememo-keys')
+export const STATE = Symbol('remmi')
+export const KEYS = Symbol('remmi-keys')
+
+enum ArchType {
+  Object,
+  Array,
+  Reference
+}
+
+interface ArchTypeHandler {
+  createProxy(state: CursorState): any // TODO: better type
+  reconcile(state: CursorState, newValue, oldValue, pending: Set<TrackingState>)
+}
+
+function getArchType(value: any): ArchType {
+  if (handleAsReference(value)) return ArchType.Reference
+  if (Array.isArray(value)) return ArchType.Array
+  return ArchType.Object
+}
+const handlers: Record<ArchType, ArchTypeHandler> = {
+  [ArchType.Object]: {
+    createProxy: createObjectProxy,
+    reconcile: reconcileObject
+  },
+  [ArchType.Array]: {
+    createProxy: createArrayProxy,
+    reconcile: reconcileArray
+  },
+  [ArchType.Reference]: {
+    createProxy: createObjectProxy,
+    reconcile() {} // TODO: replace with reconcile: die,
+  }
+}
 
 let currentlyTracking: TrackingState | undefined = undefined
 
-export function update(lens, next) {
-  if (!isLens(lens)) throw new Error('Nope') // TODO: better error
-  const state: LensState = lens[STATE]
+export function update(cursor, next) {
+  if (!isCursor(cursor)) throw new Error('Nope') // TODO: better error
+  const state: CursorState = cursor[STATE]
   if (state.parent) throw new Error('Nope nope') // TODO: better error
   // optimization: if we now the max set of tracking states, we
   // could maybe stop diffing if we saw them all?
@@ -17,23 +51,26 @@ export function update(lens, next) {
   })
 }
 
-export function createStore<T>(initial: T): T {
-  // TODO: rename to createRootLens
+export function cursor<T>(initial: T): T {
+  // TODO: add overload cursor()
+  // TODO: add overload cursor(basecursor, ...pathParts)
+  // TODO: return T & { [STATE]} or something alike (recursive)
   return createProxy(initial).proxy
 }
 
-class LensState {
+export class CursorState {
   // optmization: create lazily
   readonly subscribers = new Set<TrackingState>()
-  readonly children = new Map<PropertyKey, LensState>()
+  // TODO: data structure should depend on archetype?
+  readonly children = new Map<PropertyKey, CursorState>()
   base: any
   readonly proxy!: any
   isRef: boolean
-  parent?: LensState
+  parent?: CursorState
   prop?: PropertyKey
   // TODO: store parent / prop or path, so that we can print nice error messages,
 
-  constructor(base, parent?: LensState, prop?: PropertyKey) {
+  constructor(base, parent?: CursorState, prop?: PropertyKey) {
     this.parent = parent
     this.prop = prop
     this.base = base
@@ -41,7 +78,7 @@ class LensState {
   }
 
   read(grab?: boolean) {
-    // we always return the proxy (the lens), unless the value is primitive
+    // we always return the proxy (the cursor), unless the value is primitive
     if (this.isRef || grab) {
       if (currentlyTracking) {
         this.subscribers.add(currentlyTracking)
@@ -51,7 +88,7 @@ class LensState {
     } else {
       if (!currentlyTracking) {
         console.warn(
-          'Lenses should not be read directly outside a tracking context. Use a tracking context or use current if you want to peek at the current value of the lens'
+          'Cursors should not be read directly outside a tracking context. Use a tracking context or use current if you want to peek at the current value of the cursor'
         )
       }
       return this.proxy
@@ -59,47 +96,18 @@ class LensState {
   }
 
   update(newValue, pending: Set<TrackingState>, _markForRemoval?: boolean) {
-    // TODO: if _markForRemoval this means that we can safely dispose this lens
+    // TODO: if _markForRemoval this means that we can safely dispose this cursor
     if (newValue === this.base) {
       return
     }
-    const wasArray = Array.isArray(this.base)
-    const wasRef = this.isRef
     const oldValue = this.base
+    const oldType = getArchType(oldValue)
+    const newType = getArchType(newValue)
     this.base = newValue
-    const isRef = (this.isRef = handleAsReference(newValue))
-    if (!wasRef && isRef) {
+    if (newType === ArchType.Reference || newType !== oldType) {
       this.clearAllChildren(pending)
-    } else if (!wasRef && !this.isRef) {
-      // TODO: support map and set as well
-      const isArray = Array.isArray(newValue)
-      if (isArray !== wasArray) {
-        // dont recurse if we had a completely different type of data structure
-        this.clearAllChildren(pending)
-      } else {
-        if (isArray) {
-          const common = Math.min(newValue.length, oldValue.length)
-          for (let i = 0; i < common; i++) {
-            this.children.get('' + i)?.update(newValue[i], pending)
-          }
-          for (let i = common; i < oldValue.length; i++) {
-            this.clearChild('' + i, pending)
-          }
-          this.children.get('length')?.update(newValue.length, pending)
-        } else {
-          const keys = Reflect.ownKeys(newValue)
-          const newKeysSet = new Set(keys)
-          this.children.forEach((child: LensState, prop) => {
-            if (prop === KEYS) {
-              child.update(keys, pending)
-            } else if (!newKeysSet.has(prop)) {
-              this.clearChild(prop, pending)
-            } else {
-              child.update(newValue[prop], pending)
-            }
-          })
-        }
-      }
+    } else {
+      handlers[newType].reconcile(this, newValue, oldValue, pending)
     }
     // any previous subscribers are to be updated
     this.subscribers.forEach(tracker => pending.add(tracker)) // optimization: extract closure
@@ -113,31 +121,31 @@ class LensState {
 
   clearAllChildren(pending: Set<TrackingState>) {
     if (!this.children.size) return
-    this.children.forEach(lens => {
-      lens.update(undefined, pending) // optimize, extract closure?
+    this.children.forEach(cursor => {
+      cursor.update(undefined, pending) // optimize, extract closure?
     })
     this.children.clear()
   }
 }
 
-function createProxy(value: any, parent?: LensState, prop?: PropertyKey): LensState {
-  const lensstate = new LensState(value, parent, prop)
-  const proxy = new Proxy(lensstate, handlers)
+export function createProxy(value: any, parent?: CursorState, prop?: PropertyKey): CursorState {
+  const cursorstate = new CursorState(value, parent, prop)
+  const proxy = handlers[getArchType(value)].createProxy(cursorstate)
   // @ts-ignore
-  lensstate.proxy = proxy
+  cursorstate.proxy = proxy
   if (parent) {
-    parent.children.set(prop!, lensstate)
+    parent.children.set(prop!, cursorstate)
   }
-  return lensstate
+  return cursorstate
 }
 
-export function isLens(thing): thing is {[STATE]: LensState} {
+export function isCursor(thing): thing is {[STATE]: CursorState} {
   return thing && thing[STATE] ? true : false
 }
 
 export class TrackingState {
   // TODO: create interface
-  readonly dependencies = new Set<LensState>()
+  readonly dependencies = new Set<CursorState>()
   public changed = false
   onChange?: Thunk
 
@@ -151,12 +159,12 @@ export class TrackingState {
   notifyChanged() {
     this.changed = true
     this.onChange?.()
-    // TODO: if all lenses originated from 1 root lens, this wouldn't be needed
+    // TODO: if all cursor originated from 1 root cursor, this wouldn't be needed
     this.dispose()
   }
 
   dispose = () => {
-    this.dependencies.forEach(lens => lens.subscribers.delete(this))
+    this.dependencies.forEach(cursor => cursor.subscribers.delete(this))
   }
 }
 
@@ -177,16 +185,16 @@ export function track<T, R>(
   }
 }
 
-export function current(lens) {
-  if (!isLens(lens)) throw new Error('Expected lens')
-  const lensState: LensState = lens[STATE]
-  const res = lensState.read(true)
-  if (isLens(res)) return current(res)
+export function current(cursor) {
+  if (!isCursor(cursor)) throw new Error('Expected cursor')
+  const cursorState: CursorState = cursor[STATE]
+  const res = cursorState.read(true)
+  if (isCursor(res)) return current(res)
   return res
 }
 
 function autoGrabber(base) {
-  if (isLens(base)) return current(base)
+  if (isCursor(base)) return current(base)
   if (handleAsReference(base)) return base
   // TODO: map and set
   if (Array.isArray(base)) {
@@ -205,57 +213,9 @@ function autoGrabber(base) {
 
 function handleAsReference(value: any): boolean {
   if (!value || typeof value !== 'object') return true
-  if (isLens(value)) return true
+  if (isCursor(value)) return true
   if (Array.isArray(value) || value instanceof Map || value instanceof Set) return false
   const proto = Object.getPrototypeOf(value)
   if (proto === null || proto === Object.prototype) return false
   return true
-}
-
-const handlers: ProxyHandler<any> = {
-  get(state: LensState, prop) {
-    if (prop === STATE) return state
-    // TODO: if we support ES5, we should warn if trying to read a non-existing property!
-    const child =
-      state.children.get(prop) ||
-      createProxy(prop === KEYS ? Reflect.ownKeys(state.base) : state.base[prop], state, prop)
-    return child.read()
-  },
-  getPrototypeOf(target) {
-    return Reflect.getPrototypeOf(target.base)
-  },
-  isExtensible(target) {
-    return Reflect.isExtensible(target.base)
-  },
-  preventExtensions(target) {
-    return Reflect.preventExtensions(target.base)
-  },
-  getOwnPropertyDescriptor(target, p) {
-    return Reflect.getOwnPropertyDescriptor(target.base, p)
-  },
-  has(target, p: PropertyKey) {
-    return Reflect.has(target.base, p)
-  },
-  ownKeys(target) {
-    return target.proxy[KEYS]
-  },
-  set() {
-    // TODO: dedupe error msgs below
-    throw new Error('Lenses should not be written to')
-  },
-  deleteProperty() {
-    throw new Error('Lenses should not be written to')
-  },
-  defineProperty() {
-    throw new Error('Lenses should not be written to')
-  },
-  setPrototypeOf() {
-    throw new Error('Not supported')
-  },
-  apply() {
-    throw new Error('Not supported')
-  },
-  construct() {
-    throw new Error('Not supported')
-  }
 }

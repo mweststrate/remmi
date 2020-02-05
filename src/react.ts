@@ -1,12 +1,12 @@
 import {useRef, memo, useState, useEffect, useCallback, createElement} from 'react'
-import {track, createStore, update, current} from './remmi'
+import {track, cursor, update, current} from './remmi'
 
 export function useStore<T>(initial: T | (() => T)): [T, (updater: T | ((current: T) => T)) => void] {
-  const [rootLens] = useState(() => createStore(typeof initial === 'function' ? (initial as Function)() : initial))
+  const [rootCursor] = useState(() => cursor(typeof initial === 'function' ? (initial as Function)() : initial))
   const updater = useCallback(updater => {
-    update(rootLens, typeof updater === 'function' ? updater(current(rootLens)) : updater)
+    update(rootCursor, typeof updater === 'function' ? updater(current(rootCursor)) : updater)
   }, []) // Optimize: extract arr
-  return [rootLens, updater]
+  return [rootCursor, updater]
 }
 
 export function tracking<P>(component: React.FC<P>, autoGrab?: boolean): React.FC<P>
@@ -38,7 +38,7 @@ export function autoMemo(component: React.FC<any>, autoGrab?: boolean) {
   const Inner = memo(inner, () => true) // TODO: with ()=>true theoretically faster, but makes tree deeper // optimization: extra closure
 
   const Outer: React.FC = function(props) {
-    const storeRef = useRef(createStore(props))
+    const storeRef = useRef(cursor(props))
     // TODO: somehow treat children as ref as well, and not as datastructure?
     // e.g. pull them out first or detect that type? give custom isReference handler to store?
     update(storeRef.current, props)
