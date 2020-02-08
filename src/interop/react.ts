@@ -1,5 +1,5 @@
 import {useRef, memo, useState, useEffect, useCallback, createElement} from 'react'
-import {track, cursor, update, current} from './remmi'
+import {track, cursor, update, current} from '../remmi'
 
 export function useStore<T>(initial: T | (() => T)): [T, (updater: T | ((current: T) => T)) => void] {
   const [rootCursor] = useState(() => cursor(typeof initial === 'function' ? (initial as Function)() : initial))

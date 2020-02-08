@@ -1,14 +1,18 @@
-import {createObjectProxy, reconcileObject} from './object'
-import {createArrayProxy, reconcileArray} from './array'
+import {createObjectProxy, reconcileObject} from './types/object'
+import {createArrayProxy, reconcileArray} from './types/array'
+import {createMap, reconcileMap} from './types/map'
 
 type Thunk = () => void
+
+// TODO: check hasSymobl
 export const STATE = Symbol('remmi')
 export const KEYS = Symbol('remmi-keys')
 
 enum ArchType {
   Object,
   Array,
-  Reference
+  Reference,
+  Map
 }
 
 interface ArchTypeHandler {
@@ -33,6 +37,10 @@ const handlers: Record<ArchType, ArchTypeHandler> = {
   [ArchType.Reference]: {
     createProxy: createObjectProxy,
     reconcile() {} // TODO: replace with reconcile: die,
+  },
+  [ArchType.Map]: {
+    createProxy: createMap,
+    reconcile: reconcileMap,
   }
 }
 

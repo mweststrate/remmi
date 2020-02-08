@@ -19,6 +19,6 @@
     "rootDir": "src/"
   },
   "files": ["./src/remmi.ts"],
-  "include": ["src/*.spec.ts"],
+  "include": ["src/*.spec.ts", "src/tests/track.spec.ts"],
   "exclude": ["node_module", "dist"]
 }

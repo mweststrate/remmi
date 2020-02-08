@@ -2,6 +2,8 @@
 
 _Efficient immutable tree observer_
 
+Philosophy: Cursors by default provides the convenience of MobX, and the techical benefits of immutability
+
 ## Benefits
 
 - fast
@@ -46,6 +48,12 @@ _Efficient immutable tree observer_
 - [ ] ES5 mode + warn about missing items in Proxy mode
 - [ ] `wrapReducer`
 - [ ] `protect(lens) -> updater` disallow external updates
+- [ ] `keyed(arrayLens, key) => [[key, lens]]`
+- [ ] CI
+- [ ] sandbox
+- [ ] sandbox CI
+- [ ] bundle react stuff separately
+- [ ] perf tests
 
   1.1
 

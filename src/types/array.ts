@@ -1,4 +1,4 @@
-import {CursorState, createProxy, KEYS, STATE, TrackingState} from './magic'
+import {CursorState, createProxy, KEYS, STATE, TrackingState} from '../magic'
 import {objectTraps} from './object'
 
 export function createArrayProxy(cursorstate: CursorState) {
