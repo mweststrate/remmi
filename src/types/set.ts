@@ -1,12 +1,11 @@
 import {__extends, iteratorSymbol, setsAreEqual} from '../utils'
-import {CursorState, STATE, createProxy, KEYS, TrackingState, isCursor} from '../magic'
+import {CursorState, STATE, createProxy, TrackingState, isCursor} from '../magic'
+import { reconcileArray } from './array';
 
 export function createSet(cursorstate: CursorState) {
   // @ts-ignore
   return new DraftSet(cursorstate)
 }
-
-const SET_SIZE = Symbol("remmi-set-size")
 
 let setChangeCounter = 0;
 
@@ -14,15 +13,14 @@ export function reconcileSet(cursorState: CursorState, newValue: Set<any>, oldVa
   if (setsAreEqual(newValue, oldValue)) {
     return;
   }
-  cursorState.children.forEach((_, child: CursorState) => {
-    if (!newValue.has(child.base))
-      cursorState.clearChild(child.base, pending)
-  })
+  reconcileArray(cursorState, Array.from(newValue), Array.from(oldValue), pending)
   // a different set always triggers the 'key collection'
   // TODO: introduce the concept of atoms, as subset of CursorState without children/proxy
-  cursorState.children.get(KEYS)!.update(++setChangeCounter, pending)
-  cursorState.children.get(SET_SIZE)?.update(newValue.size, pending);
+  cursorState.children.get(ANY_SET_CHANGE)!.update(++setChangeCounter, pending)
+  // cursorState.children.get(SET_SIZE)?.update(newValue.size, pending);
 }
+
+const ANY_SET_CHANGE = Symbol("remmi-any-set-change");
 
 // TODO: RENAME
 const DraftSet = (function(_super) {
@@ -34,43 +32,45 @@ const DraftSet = (function(_super) {
   // Create class manually, cause #502
   function DraftSet(this: any, cursorState: CursorState): any {
     this[STATE] = cursorState
-    createProxy(setChangeCounter, cursorState, KEYS)
+    // TODO: should use an atom abstraction
+    // optimization: create lazily, like size and the others
+    createProxy(setChangeCounter, cursorState, ANY_SET_CHANGE)
     return this
   }
   const p = DraftSet.prototype
 
   // TODO: rename & lift
   p._keys = function() {
-    this[STATE].children.get(KEYS).read()
+    this[STATE].children.get(ANY_SET_CHANGE)!.read()
   }
 
-  p._toCursor = function(baseValue) {
+  p._toCursor = function(idx: number, baseValue) {
     // returns a lens for an entry
     if (isCursor(baseValue)) throw new Error("oops"); // TODO:
     const state: CursorState = this[STATE]
     // TODO: getOrCreateProxy should be an utility
     const child =
-      state.children.get(baseValue) ||
-      createProxy(baseValue, state, baseValue)
+      state.children.get('' + idx) ||
+      createProxy(baseValue, state, '' + idx)
     return child
   }
 
   p.has = function(key: any): any {
-    // TODO: accept lens?
-    const state: CursorState = this[STATE]
+    // TODO: accept lens as key?
     this._keys(); // optimize: use a hasMap?
-    return state.base.has(key)
+    return this[STATE].base.has(key)
   }
 
+  // TODO: one could argue that .keys() is different, and that it should return non-lensed values!
   p[Symbol.iterator] = p.keys = p.values = function(): IterableIterator<any> {
-    // TODO: indeed not needed? this._keys()
     const internalIt = this[STATE].base.values()
+    let idx = 0;
     return {
       [iteratorSymbol]: () => this.values(),
       next: () => {
         const r = internalIt.next()
         if (r.done) return r;
-        const value = this._toCursor(r.value).read()
+        const value = this._toCursor(idx++, r.value).read()
         return {
           done: false,
           value
@@ -79,6 +79,7 @@ const DraftSet = (function(_super) {
     } as any
   }
   
+  // TODO one could argue that the entries are actual key => value, that is base => cursor
   p.entries = function(): IterableIterator<[any, any]> {
     const internalIt = this.values()
     return {
@@ -95,6 +96,7 @@ const DraftSet = (function(_super) {
   }
 
   p.forEach = function(cb: (value: any, key: any, self: any) => void, thisArg?: any) {
+    // TODO: see question above, use entries() and pass k,v?
     Array.from(this.values()).forEach(v => {
       cb.call(thisArg, v, v, this);
     })
@@ -105,8 +107,8 @@ const DraftSet = (function(_super) {
     get: function() {
       // TODO: reuse utility
       const child =
-        this[STATE].children.get(SET_SIZE) ||
-        createProxy(this[STATE].base.size, this[STATE], SET_SIZE)
+        this[STATE].children.get('length') || // 'length' is supported by the array reconciler used for sets
+        createProxy(this[STATE].base.size, this[STATE], 'length')
       return child.read()
     },
     enumerable: true,
