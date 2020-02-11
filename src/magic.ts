@@ -1,6 +1,7 @@
 import {createObjectProxy, reconcileObject} from './types/object'
 import {createArrayProxy, reconcileArray} from './types/array'
 import {createMap, reconcileMap} from './types/map'
+import {createSet, reconcileSet} from './types/set'
 
 type Thunk = () => void
 
@@ -12,7 +13,8 @@ enum ArchType {
   Object,
   Array,
   Reference,
-  Map
+  Map,
+  Set
 }
 
 interface ArchTypeHandler {
@@ -21,8 +23,10 @@ interface ArchTypeHandler {
 }
 
 function getArchType(value: any): ArchType {
-  if (handleAsReference(value)) return ArchType.Reference
+  if (value instanceof Set && !value[STATE]) return ArchType.Set
+  if (value instanceof Map && !value[STATE]) return ArchType.Map
   if (Array.isArray(value)) return ArchType.Array
+  if (handleAsReference(value)) return ArchType.Reference
   return ArchType.Object
 }
 const handlers: Record<ArchType, ArchTypeHandler> = {
@@ -41,6 +45,10 @@ const handlers: Record<ArchType, ArchTypeHandler> = {
   [ArchType.Map]: {
     createProxy: createMap,
     reconcile: reconcileMap,
+  },
+  [ArchType.Set]: {
+    createProxy: createSet,
+    reconcile: reconcileSet,
   }
 }
 
@@ -70,24 +78,24 @@ export class CursorState {
   // optmization: create lazily
   readonly subscribers = new Set<TrackingState>()
   // TODO: data structure should depend on archetype?
-  readonly children = new Map<PropertyKey, CursorState>()
+  readonly children = new Map<any, CursorState>()
   base: any
   readonly proxy!: any
-  isRef: boolean
+  archType: ArchType
   parent?: CursorState
   prop?: PropertyKey
   // TODO: store parent / prop or path, so that we can print nice error messages,
 
-  constructor(base, parent?: CursorState, prop?: PropertyKey) {
+  constructor(archType: ArchType, base, parent?: CursorState, prop?: PropertyKey) {
     this.parent = parent
     this.prop = prop
     this.base = base
-    this.isRef = handleAsReference(base)
+    this.archType = archType
   }
 
   read(grab?: boolean) {
     // we always return the proxy (the cursor), unless the value is primitive
-    if (this.isRef || grab) {
+    if (grab || this.archType === ArchType.Reference) {
       if (currentlyTracking) {
         this.subscribers.add(currentlyTracking)
         currentlyTracking.dependencies.add(this)
@@ -95,6 +103,8 @@ export class CursorState {
       return this.base
     } else {
       if (!currentlyTracking) {
+        // TODO: but in some case we might want to do this, e.g. to set up subscriptions etc. But just no to deep?
+        // Maybe support syntax like lens(() => someLens.somePath)?
         console.warn(
           'Cursors should not be read directly outside a tracking context. Use a tracking context or use current if you want to peek at the current value of the cursor'
         )
@@ -137,8 +147,9 @@ export class CursorState {
 }
 
 export function createProxy(value: any, parent?: CursorState, prop?: PropertyKey): CursorState {
-  const cursorstate = new CursorState(value, parent, prop)
-  const proxy = handlers[getArchType(value)].createProxy(cursorstate)
+  const archtype = getArchType(value)
+  const cursorstate = new CursorState(archtype, value, parent, prop)
+  const proxy = handlers[archtype].createProxy(cursorstate)
   // @ts-ignore
   cursorstate.proxy = proxy
   if (parent) {
@@ -203,7 +214,7 @@ export function current(cursor) {
 
 function autoGrabber(base) {
   if (isCursor(base)) return current(base)
-  if (handleAsReference(base)) return base
+  if (getArchType(base) === ArchType.Reference) return base
   // TODO: map and set
   if (Array.isArray(base)) {
     // TODO: can be optimized by using immer?

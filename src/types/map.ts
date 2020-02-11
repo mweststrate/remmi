@@ -35,6 +35,7 @@ const DraftMap = (function(_super) {
   const p = DraftMap.prototype
 
   p.get = function(key: any): any {
+    // TODO: accept lens?
     const state: CursorState = this[STATE]
     const child =
       state.children.get(key) ||
@@ -42,6 +43,7 @@ const DraftMap = (function(_super) {
     return child.read()
   }
 
+  // TODO: rename and lift
   p._keys = function(): Set<any> {
     return this.get(KEYS)
   }
@@ -52,6 +54,7 @@ const DraftMap = (function(_super) {
   }
 
   p.has = function(key: any): boolean {
+    // TODO: accept lens?
     return this._keys().has(key) // optimization: keep a separate has map
   }
 

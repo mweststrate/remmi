@@ -1,5 +1,6 @@
 const hasSymbol = typeof Symbol !== "undefined"
 
+// TODO: force else branch for testing purposes
 export const iteratorSymbol: typeof Symbol.iterator = hasSymbol
 	? Symbol.iterator
 	: ("@@iterator" as any)
@@ -27,4 +28,19 @@ export function __extends(d: any, b: any): any {
 	d.prototype =
 		// @ts-ignore
 		((__.prototype = b.prototype), new __())
+}
+
+export function setsAreEqual(set1: Set<any>, set2: Set<any>) {
+	if (set1.size !== set2.size)
+		return false
+	const it1 = set1[Symbol.iterator]()
+	const it2 = set2[Symbol.iterator]()
+	let a: IteratorResult<any>
+	while(true) {
+		a = it1.next()
+		if (a.done)
+			return true;
+		if (a.value !== it2.next().value)
+			return false;
+	} 
 }

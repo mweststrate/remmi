@@ -61,6 +61,7 @@ Philosophy: Cursors by default provides the convenience of MobX, and the techica
 - [ ] autorun / when / computeds?
 - [ ] trackSelector
 - [ ] `act`
+- [ ] models with computeds and actions?
 
   1.2
 

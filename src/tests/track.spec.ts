@@ -1,14 +1,6 @@
 import {cursor, track, isCursor} from '../remmi'
 import {update, current} from '../magic'
-
-function simpleTest<T, R>(baseState: T, trackFn: (v: T) => R, newState: T, shouldTrigger: boolean) {
-  const l = cursor(baseState)
-
-  const {trackingState} = track(l, trackFn)
-
-  update(l, newState)
-  expect(trackingState.changed).toBe(shouldTrigger)
-}
+import {simpleTest} from "./utils"
 
 test('simple object tracking', () => {
   simpleTest({x: 1}, s => s.x, {x: 2}, true)

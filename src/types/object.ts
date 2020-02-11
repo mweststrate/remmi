@@ -9,8 +9,7 @@ export function reconcileObject(cursorState: CursorState, newValue: any, oldValu
   const newKeysSet = new Set(keys)
   cursorState.children.forEach((child: CursorState, prop) => {
     if (prop === KEYS) {
-      // TODO: first check if the set changed!
-      // TODO: store keySet, not keys!
+      // TODO: store keySet, not keys?
       child.update(keys, pending)
     } else if (!newKeysSet.has(prop)) {
       cursorState.clearChild(prop, pending)
